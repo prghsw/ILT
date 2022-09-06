@@ -29,10 +29,14 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Spa
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,6 +50,7 @@ import androidx.compose.ui.semantics.Role.Companion.Image
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.codelab.basiclayouts.ui.theme.MySootheTheme
+import java.util.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -236,30 +241,125 @@ fun FavoriteCollectionsGrid(
     }
 }
 
+/*
+    섹션 컨테이너를 구현하기 위해서는 슬롯 API를 사용한다.
+    https://developer.android.com/jetpack/compose/layouts/basics#slot-based-layouts
+    슬롯 기반 레이아웃은 개발자가 원하는 대로 채울 수 있도록 UI에 빈 공간을 남겨 둡니다.
+    슬롯 기반 레이아웃을 사용하면 보다 유연한 레이아웃을 만들 수 있습니다.
+ */
 // Step: Home section - Slot APIs
 @Composable
 fun HomeSection(
-    modifier: Modifier = Modifier
+    @StringRes title: Int,
+    modifier: Modifier = Modifier,
+    //  컴포저블 매개변수화. (슬롯)
+    content: @Composable () -> Unit
 ) {
-    // Implement composable here
+    /*
+        컴포저블이 채울 수 있는 슬롯을 여러 개 제공한다면 더 큰 컴포저블 컨테이너에서 각각의 기능을
+        나타내는 의미 있는 이름을 지정하면 됩니다.
+        Material의 TopAppBar는 title, navigationIcon, actions 슬롯을 제공합니다.
+    */
+    Column(modifier) {
+        Text(
+            stringResource(title).uppercase(Locale.getDefault()),
+            style = MaterialTheme.typography.h2,
+            modifier = Modifier
+                .paddingFromBaseline(top = 40.dp, bottom = 8.dp)
+                .padding(horizontal = 16.dp)
+        )
+        content()
+    }
 }
 
+/*
+    Spacer를 사용하면 Column 내부에서 더 많은 공간을 확보 할 수 있다.
+    Spacer를 사용하는 대신 Column의 패딩을 설정하면 Favorite collections에서 동일하게 잘라내기 동작이 적용된다.
+*/
 // Step: Home screen - Scrolling
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
-    // Implement composable here
+    /*  기기 화면 크기에 따라 스크롤이 가능 하도록 개발. (Lazy 레이아웃)
+      목록에 포함된 요소가 많거나 로드해야 할 데이터 세트가 많아서 모든 항목을 동시에 내보내면 성능이 저하되고 앱이 느려지게 되는 경우에 Lazy 레이아웃을 사용.
+      목록에 포함된 요소의 개수가 많지 않은 경우에는 간단한 Column, Row를 사용하고 스크롤 동작을 수동으로 추가 한다.
+      verticalScroll, horizontalScroll 수정자.
+      이를 위해서는 스크롤의 현재 상태를 포함하여 외부에서 스크롤 상태를 수정하는 데 사용되는 ScrollState가 필요하다.
+      여기서는 스크롤 상태를 수정할 필요가 없으므로 rememberScrollState를 사용하여 영구 ScrollState인스턴스를 만들면 된다.
+      remember의 기능과 Compose 상태에서 맡은 역할의 내용 > https://developer.android.com/codelabs/jetpack-compose-state
+    */
+    Column(
+        modifier
+            .verticalScroll(rememberScrollState())
+            .padding(vertical = 16.dp)
+    ) {
+//        Spacer(Modifier.height(16.dp))
+        SearchBar(Modifier.padding(horizontal = 16.dp))
+        HomeSection(title = R.string.align_your_body) {
+            AlignYourBodyRow()
+        }
+        HomeSection(title = R.string.favorite_collections) {
+            FavoriteCollectionsGrid()
+        }
+//        Spacer(modifier = Modifier.height(16.dp))
+    }
 }
 
 // Step: Bottom navigation - Material
 @Composable
 private fun SootheBottomNavigation(modifier: Modifier = Modifier) {
-    // Implement composable here
+    /*
+        하단 탐색
+        Compose Material 라이브러리의 일부인 BottomNavigation 컴포저블을 사용한다.
+        컴포저블 내에서 하나 이상의 BottomNavigationItem 요소를 추가하면 Material 라이브러리에 의해 자동으로 스타일이 지정된다.
+        Material Design에 관심이 있고 Jetpack Compose를 사용하여 디자인 시스템을 구현하는 방법
+            > https://developer.android.com/codelabs/jetpack-compose-theming
+            > https://developer.android.com/jetpack/compose/themes
+    */
+    BottomNavigation(modifier) {
+        BottomNavigationItem(
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Spa,
+                    contentDescription = null
+                )
+            },
+            label = {
+                Text(text = stringResource(id = R.string.bottom_navigation_home))  
+            },
+            selected = true,
+            onClick = { }
+        )
+        BottomNavigationItem(
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = null
+                )
+            },
+            label = {
+                Text(text = stringResource(id = R.string.bottom_navigation_profile))
+            },
+            selected = false,
+            onClick = { }
+        )
+    }
 }
 
 // Step: MySoothe App - Scaffold
 @Composable
 fun MySootheApp() {
-    // Implement composable here
+    /*
+        https://developer.android.com/jetpack/compose/layouts/material#scaffold
+        scaffold는 Material Design을 구현하는 앱을 위한 구성 가능한 최상위 수준 컴포저블 입니다.
+        Material 개념의 슬롯이 포함되어 있는데, 그중 하나가 하단 메뉴이다.
+     */
+    MySootheTheme {
+        Scaffold(
+            bottomBar = { SootheBottomNavigation() }
+        ) { padding ->
+            HomeScreen(Modifier.padding(padding))
+        }
+    }
 }
 
 private val alignYourBodyData = listOf(
@@ -333,10 +433,14 @@ fun AlignYourBodyRowPreview() {
 @Preview(showBackground = true, backgroundColor = 0xFFF0EAE2)
 @Composable
 fun HomeSectionPreview() {
-    MySootheTheme { HomeSection() }
+    MySootheTheme {
+        HomeSection(R.string.align_your_body) {
+            AlignYourBodyRow()
+        }
+    }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFF0EAE2)
+@Preview(showBackground = true, backgroundColor = 0xFFF0EAE2, heightDp = 180)
 @Composable
 fun ScreenContentPreview() {
     MySootheTheme { HomeScreen() }
