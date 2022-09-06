@@ -1,0 +1,27 @@
+- inital setup
+    1. node.js 설치 (node >= 8.10 / npm >= 5.6)
+    2. npx create-react-app myapp
+
+    * Babel
+        https://babeljs.io/
+    * webpack
+        https://webpack.js.org/
+    
+    3. npm run build
+
+- Procedure
+    1.  - public 디렉토리에 assets 디렉토리 생성.
+        - assets 디렉토리에 images 디렉토리 생성.
+    2.  - Bootstrap4 설치.
+            npm install bootstrap@4.0.0 --save
+        - reactstrap / react-popper 설치.
+            npm install reactstrap > bootstrap4 인경우 8버전.
+            npm install react-popper
+    3.  - src 디렉토리에 components 디렉토리 생성.
+            greet.js, media.css, menu.js 생성하여 소스 코드 입력.
+    4.  - src 디렉토리에 shared 디렉토리 생성.
+            places.js 생성하여 소스 코드 입력.
+    5.  - App.js에 소스코드 작성.
+        - App.css 수정.
+    6.  - index.js 소스코드 작성.
+    7.  - npm start > localhost:???? 에 접속.
