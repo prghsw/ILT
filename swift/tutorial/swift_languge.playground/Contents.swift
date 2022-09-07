@@ -123,7 +123,7 @@ let nilCoalescingUnwrappedValue2: Int = nilCoalescingValue2 ?? nilCoalescingDefa
 print("nil-coalescing > \(nilCoalescingValue2)")
 print("nil-coalescing > \(nilCoalescingUnwrappedValue2)")
 
-//  Operators
+// Arithmetic Operators
 /*
     + : Addition
     - : Subtraction
@@ -141,4 +141,149 @@ print(a/b)
 var aD:Float = 7.0
 var bD:Float = 3.0
 print(aD/bD)
+print(9%4)
 
+//  Assignmen Operators
+/*
+    =   Assingment Operator
+    +=  Addition Assignment Operator
+    -=  Subtraction Assignment
+    *=  Multiplication Assignment
+    /=  Division Assignment
+    %=  Remainder Assignment
+ */
+var aa = 10
+var bb = 5
+
+aa += bb
+print(aa)
+
+//  Comparison Operators
+/*
+    ==  Is Equal To
+    !=  Not Equal To
+    >   Greater Than
+    <   Less Than
+    >=  Greater Than or Equal To
+    <=  Less Than or Equal To
+ */
+var aaa = 5, bbb = 2
+print(aaa == bbb)
+print(aaa != bbb)
+print(aaa > bbb)
+print(aaa < bbb)
+print(aaa >= bbb)
+print(aaa <= bbb)
+
+//  Logical Operators
+/*
+    &&  Logical AND
+    ||  Logical OR
+    !   Logical NOT
+ */
+
+print(true && true)
+print(true && false)
+print(true || false)
+print(!true)
+
+//  Bitwise Operators
+/*
+    &   Binary AND
+    |   Binary OR
+    ^   Binary XOR
+    ~   Binary One's Complement
+    <<  Binary Shift Left
+    >>  Binary Shift Right
+ */
+
+//  Other Swift Operators
+/*
+    ? :     Ternary Operator (삼항연산자)
+    ??      Nil-Coalescing Operator (옵셔널 값 확인 및 기본값 설정)
+    ...     Range Operator  (길이 연산자)    ex) 1...3 -> 1,2,3
+ */
+
+//  Swift Operator 선행 및 결합
+var num = 8 + 5 * 4
+//  1. * 2. + 순서로 실행 된다.
+
+/*
+    연산자 우위 (precedencs) 테이블
+    1. Bitwise shift        >>  <<
+    2. Multiplicative       %   *   /
+    3. Additive             |   -   +   -   ^
+    4. Range                ..<     ...
+    5. Casting              is  as
+    6. Nil-Coalescing       ??
+    7. Comparison           !=  >   <   >=  <=  === ==
+    8. Logical AND          &&
+    9. Logical OR           ||
+    10. Ternary Operator    ? :
+    11. Assignment Precedence   |=  %=  /=  *=  >>= <<= ^=  +=  -=
+ */
+var precedenceNum = 15
+precedenceNum += 10 - 2 * 3
+//  1. *    2. -    3. +=
+
+//  Swift Operator 결합
+//  precedence (우위)가 같으면 왼쪽에서 오른쪽 혹은 오른쪽에서 왼쪽 으로 계산된다.
+print(6 * 4 / 3)
+//  1. *    2. / (왼쪽에서 오른쪽)
+
+//  연산자 결합 테이블
+/*
+    - Left > left to right
+    - Right > right to left
+    - None > no defined behavior
+    Bitwise Shift       >   none
+    Multiplicative      >   left
+    Additive            >   left
+    Range               >   none
+    Casting             >   none
+    Nil-Coalescing      >   right
+    Comparison          >   none
+    Logical AND         >   left
+    Logical OR          >   left
+    Ternary Operator    >   right
+    Assignment          >   right
+ */
+
+
+//  Ternary Operator in Swift
+//  condition ? expression1 : expression2
+//  if condition is true, expression1
+//  if condition is false, expression2
+
+let marks = 60
+let result = (marks >= 40) ? "pass" : "fail"
+
+print("You \(result) the exam")
+
+//  Ternary operator instead of if...else
+let toNum = 15
+var toResult = ""
+
+if (toNum > 0) {
+    toResult = "Positive Number"
+} else {
+    toResult = "Negative Number"
+}
+
+print(toResult)
+
+let toNum1 = 15
+let toResult1 = (toNum1 > 0) ? "Positive Number" : "Negative Number"
+print(toResult1)
+
+//  Nested Ternary Operators
+let ntoNum = 7
+let ntoResult = (ntoNum == 0) ? "Zero" : ((num > 0) ? "Positive" : "Negative")
+print("The number is \(ntoResult)")
+
+//  Swift Bitwise and Bit Shift Operators
+//  Bitwise AND Operator
+var andA = 12
+var andB = 25
+var andResult = a & b
+print(andResult)

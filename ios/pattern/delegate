@@ -1,0 +1,66 @@
+
+	# Delegate
+	
+	- 정의
+	Delegation은 상속만큼 재사용을위한 구성을 강력하게 만드는 방법입니다. Delegation에서 요청을 처리하는 데 두 가지 개체가 포함됩니다. 받는 개체(receiving object)는 작업을 대리자(delegate)에게 위임(delegate)합니다. 이것은 부모 클래스에 대한 요청을 연기하는 서브 클래스와 유사합니다. .... 위임과 동일한 효과를 얻기 위해 수신자는 위임 된 작업이 수신자를 참조하도록 대리자에게 자신을 전달합니다.
+
+	- 세가지 필요 조건.
+	1. 수신자 (Receiver)
+	2. 대리자 (Delegate)
+	3. 대리자에게 수신자 자신을 전달
+
+	- 구현 및 동작 방식
+		protocol DevelopGame: class {
+			func developImages()
+			func developSounds()
+			func developCoding()
+		}
+
+		class GameDirector {
+			weak var delegate: DevelopGame?
+
+			func order() {
+				self.delegate?.developImages()
+				self.delegate?.developSounds()
+				self.delegate?.developCoding()
+			}
+		}
+
+		class ImageDirector: DevelopGame {
+			init(director: GameDirector) {
+				director.delegate = self
+			}
+
+			func developImages() {
+				print("이미지 개발 합니다.")
+			}
+		}
+
+		class SoundDirector: DevelopGame {
+			init(director: GameDirector) {
+				director.delegate = self
+			}
+		
+			func developSounds() {
+				print("사운드 개발 합니다.")
+			}
+		}
+
+		class CodingDirector: DevelopGame {
+			init(director: GameDirector) {
+				director.delegate = self
+			}
+
+			func developCoding() {
+				print("코딩 합니다.")
+			}
+		}
+
+		let gameDirector = GameDirector()
+
+		let imageDirector = ImageDirector(gameDirector)
+		gameDirector.order()
+		let soundDirector = SoundDirector(gameDirector)
+		gameDirector.order()
+		let codingDirector = CodingDirector(gameDirector)
+		gameDirector.order()

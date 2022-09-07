@@ -1,0 +1,29 @@
+
+	# MVC
+	
+	- 각 역할
+		# M (Model)
+		: 데이터를 받고, 가공 하는 부분
+		# V (View)
+		: 화면을 구성하는 Storyboard를 View
+		# C (Controller)
+		: 커스텀된 뷰를 생성하고, 구성하는 부분을 Controller
+
+	- UITableView Configuration with MVC
+		# UITableViewCell Extends Class
+			- Controller에서 전달 받은 데이터 노출.
+		# UIViewController Extends Class
+			- Model 데이터 객체 관리.
+			- Model Delegate 데이터 요청 및 응답에 대한 처리.
+			## UIVIewController extension UITableViewDataSource
+				- Cell 구성 담당.
+			## UIViewController extension UITableViewDelegate (할일없음)
+		# DataModel class
+			- HTTP 요청, CoreData, File접근..등 데이터 관련 관리.
+		# DataModel Delegate protocol extends class
+			- 데이터 모델과 컨트롤러 간 동작 위임 클래스
+			- 구현은 ViewController 에서 담당한다.:
+
+	- Reference
+		# https://medium.com/ios-os-x-development/ios-tableview-with-mvc-a05103c01110
+		# https://velog.io/@dlskawns96/Swift-MVC-%ED%8C%A8%ED%84%B4%EC%9C%BC%EB%A1%9C-UITableView-%EA%B5%AC%ED%98%84%ED%95%98%EA%B8%B0
