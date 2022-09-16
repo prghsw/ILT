@@ -1,0 +1,244 @@
+
+# Object
+    JavaScript 객체는 간단히 이름-값 쌍(name-value pairs)의 모임입니다.
+    값은 객체를 포함하여 모든 JavaScript 값이 될 수 있는 반면, "이름" 부분은 JavaScript 문자열 입니다.
+
+    빈 객체를 생성하는 두가지 방법
+    var obj = new Object();
+    var obj = {};
+
+    두번째 방법은 객체 리터럴 구문이라고 부르며 더 편리합니다.
+
+    객체 리터럴 구문으로 객체의 전체적인 구조를 구조로 초기화 할 수 있습니다.
+    const obj = {
+        name: 'Carrot',
+        _for: 'Max' // for 는 예약어이므로, _for를 사용합니다.
+        details: {
+            color: 'orange',
+            size: 12
+        }
+    };
+
+    속성에 연속적으로 접근할 수 있습니다.
+    obj.details.color;  //  orange
+    obj["details"]["size"]; //  12
+
+    객체 프로토타입(Person)과 프로토타입의 인스턴스(you)를 생성합니다.
+    function Person(name, age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    //  객체를 정의합니다.
+    var you = new Person('You', 24);
+    // You라는 이름의 24세인 새로운 사람을 생성 중입니다.
+
+    일단 생성되면, 객체의 속성에 다음의 두 가지 방법들 중 한 가지로 접근할 수 있습니다.
+    //  점 표기법 (dot notation)
+    obj.name = "Simon";
+    var name = obj.name;
+    //  대괄호 표시법(bracket notation)
+    obj["name"] = "Simon";
+    var name = obj["name"];
+    //  key를 정의하기 위해 변수도 쓸수 있습니다.
+    var user = prompt('what is your key?')
+    obj[user] = prompt('what is its value?')
+    
+    obj.for = "Simon"   //  구문 오류, for가 예약어이기 때문.
+    obj["for"] = "Simon"    //  정상 동작
+
+    ### 참고
+    ECMAScript 5 부터, 예약어는 객체 항목의 이름으로 "덧붙임없이" 사용할 수 있다. 객체 리터럴을 정의할 때 따옴표로 "둘러쌀" 필요가 없다는 의미.
+    > http://es5.github.io/#x7.6.1
+
+    ### 참고
+    ECMAScript 2015부터, 객체의 키를 대괄호 표기법으로 변수를 통해 정의할 수 있습니다.
+    var userPhone = {};
+    userPhone[phoneType] = 12345 처럼 작성하는 대신
+    {[phoneType]: 12345} 같이 작성하는 것도 가능하다.
+
+# 배열
+    JavaScript에서 배열은 실제로는 특별한 타입의 객체입니다. (숫자로 나타낸 속성은 자연스럽게 []구문만을 사용해서 접근) 
+    일반 객체와 많이 비슷하게 동작하지만, 이 객체는 'length'라는 한가지 마법적인 속성을 가집니다. 
+    항상 배열에서 가장 큰 인덱스보다 하나 더 큰 값을 가집니다.
+
+    var a = new Array();
+    a[0] = "dog";
+    a[1] = "cat";
+    a[2] = "hen";
+    a.length    //  3
+    
+    더 편리한 배열 표기법은 배열 리터럴을 사용하는 것입니다.
+    var a = ['dog', 'cat', 'hen'];
+    a.length    //  3
+
+    array.length는 배열에 들어있는 항목의 개수가 아니라는 점을 유의.
+    var a = ['dog', 'cat', 'hen'];
+    a[100] = 'fox';
+    a.length    //  101
+
+    존재하지 않는 배열 인덱스를 참조하려고 하면 undefined를 얻게 됩니다.
+    typeof a[90];   //  undefined
+
+    []와 length에 관한 위의 사항들을 감안하면 for 반복문으로 배열을 순환할 수 있습니다.
+    for (let i = 0; i < a.length; i++) {
+        //  a[i]로 무언가를 수행
+    }
+
+    ES2015는 배열과 같은 이터러블 객체를 위해 좀더 간결한 for...of 반복문을 소개 했다.
+    for (const currentValue of a) {
+        //  currentValue로 무언가를 수행
+    }
+
+    for...in 반복문을 이용하여 배열을 반복할 수 있지만, 이 방법은 배열 요소를 반복하는게 아니라 배열 인덱스를 반복합니다.
+    누군가 Array.prototype에 새로운 속성을 추가하면, 그 속성들 또한 반복됩니다. 따라서 이런 반복 형태는 배열에는 추천하지 않습니다.
+
+    배열에 대한 또 다른 방복 방법은 ECMAScript 5에 추가된 forEach()입니다.
+    ['dog', 'cat', 'hen'].forEach(function(currentValue, index, array)) {
+        // currentValue나 array[index]로 무언가를 수행
+    }
+
+    배열에 항목 하나를 추가하기.
+    a.push(item);
+
+    배열 상세 문서
+    > https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Array
+
+# 함수 (Functions)
+    객체와 마찬가지로, 함수는 JavaScript를 이해하는데 핵심이 되는 컴포넌트입니다.
+    
+    function add(x, y) {
+        const total = x + y;
+        return total;
+    }
+
+    JavaScript 함수는 0개 이상의 이름이 있는 매개변수를 가질 수 있습니다.
+    함수의 본체에는 갯수 제한없이 구문을 작성할 수 있고 해당 함수에 지역적인 변수를 선언할 수 있습니다.
+    return문은 어느 시점이든 값을 반환하고 함수를 종료할 수 있습니다.
+    리턴문이 없으면 (혹은 값이 없는 리턴이 사용되면), JavaScript는 undefined를 반환합니다.
+
+    이름을 가진 매개변수들은 다른 어떤 것보다도 해당 함수가 어떤 함수인지 잘 설명해줄 수 있습니다.
+    해당 함수가 원하는 매개변수를 전달하지 않고 함수를 호출할 수 있지만 그럴 경우 해당 변수들은 undefinedfh 설정됩니다.
+    add();  //  NaN
+    // undefined 값으로 덧셈을 수행할 수 없습니다.
+
+    함수가 기대하는 매개변수보다 많은 매개변수를 넘겨줄 수도 있습니다.
+    add(2, 3, 4);   //  5
+    //  처음의 두 수가 더해집니다. 4는 무시됨.
+    
+    함수는 추가적으로 전달한 매개변수를 함수 내부에서 접근할 수 있습니다.
+    arguments라는 객체는 매개변수로 전달한 모든 값을 가지고 있는 배열과 비슷한 객체입니다.
+    function add() {
+        let sum = 0;
+        for (const item of arguments) {
+            sum += item;
+        }
+        return sum;
+    }
+
+    add(2, 3, 4, 5);    //  14
+
+    function avg() {
+        let sum = 0;
+        for (const item of arguments) {
+            sum += item;
+        }
+        return sum / arguments.length;
+    }
+
+    avg(2, 3, 4, 5);    // 3.5
+
+    arguments 객체의 사용을 나머지 매개변수 문법으로 변경할 수 있습니다.
+    개수 제한없이 함수로 인자를 전달할 수 있습니다. 나머지 매개변수 연산자는 ...variable처럼 함수 매개변수 목록에 작성할 수 있으며,
+    나머지 매개변수 연산자는 ...variable 처럼 함수 매개변수 목록에 작성할 수 있으며, 함수 내부에서는 variable변수를 통해 별도의
+    매개변수로 정의 되지 않은 모든 나머지 인자를 가지는 배열에 접근할 수 있습니다.
+    function avg(...args) {
+        let sum = 0;
+        for (const item of args) {
+            sum += item;
+        }
+        return sum / args.length;
+    }
+    매개변수 args는 함수로 전달된 모든 값을 가집니다.
+
+    나머지 매개변수 연산자는 함수 매개변수 목록의 마지막에만 위치할 수 있으며, 선언 위치 이전을 제외한 이후의 인자만을 저장합니다.
+    즉 function avg(firstValue, ...args) 에서 함수에 전달한 첫 번째 값은 firstValue 변수에 저장되며, 남은 인자들이 args에 저장됩니다.
+    이건 또 다른 유용한 언어 특성이지만 새로운 문제도 발생합니다. avg() 함수는 콤마로 구분된 인자 목록을 받습니다. 하지만, 배열의 평균을 알고 싶은
+    경우 함수를 다음과 같이 재작성합니다.
+    function avgArray(arr) {
+        let sum = 0;
+        for (const item of arr) {
+            sum += item;
+        }
+        return sum / arr.length;
+    }
+
+    avgArray([2, 3, 4, 5]); //  3.5
+
+    JavaScript는 함수 객체라면 모두 가지는 apply()메서드를 사용해서 임의의 인수 배열을 함수에 전달할 수 있습니다.
+    avg.apply(null, [2, 3, 4, 5]);  //  3.5
+    apply()의 두 번째 매개변수는 인수의 배열입니다.
+    > https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Function/apply
+
+    함수 호출 시 전개 연산자(spread operator)를 이용하여 avg(...numbers)와 같이 사용해도 똑같은 결과를 얻을 수 있습니다.
+    > https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Operators/Spread_syntax
+
+# 익명 함수
+    이름없는 함수들은 다른 함수의 인자로 전달하거나 변수에 할당하여 호출할 수 있습니다.
+
+    let avg = function() {
+        let sum = 0;
+        for (const item of arguments) {
+            sum += item;
+        }
+        return sum /arguments.length;
+    };
+
+    정의된 익명함수는 인수와 함께 avg()와 같은 형태로 실행할 수 있습니다.
+    function avg()와 같다.
+
+    단일 표현식으로 함수 선언과 동시에 호출하는 방법을 제공합니다.
+    즉시 실행 함수 표현식, 익명 함수를 포함한 구문으로 사용할 수 있다.
+    (function() {
+
+    })();
+    > https://developer.mozilla.org/ko/docs/Glossary/IIFE
+
+    클로저 > https://developer.mozilla.org/ko/docs/Web/JavaScript/Closures
+    클로저를 이용해서 프라이빗 메서드 흉내내기 > https://developer.mozilla.org/ko/docs/Web/JavaScript/Closures#%ED%81%B4%EB%A1%9C%EC%A0%80%EB%A5%BC_%EC%9D%B4%EC%9A%A9%ED%95%B4%EC%84%9C_%ED%94%84%EB%9D%BC%EC%9D%B4%EB%B9%97_%EB%A9%94%EC%86%8C%EB%93%9C_private_method_%ED%9D%89%EB%82%B4%EB%82%B4%EA%B8%B0
+
+# 재귀 함수
+    브라우저 DOM 등에서 볼 수 있는 트리 구조를 다루는데 유용합니다.
+    function countChars(elm) {
+        if (elm.nodeType == 3) {    //  TEXT_NODE
+            return elm.nodeValue.length;
+        }
+        var count = 0;
+        for (var i = 0, child; child = elm.childNodes[i]; i++) {
+            count += countChars(child);
+        }
+        return count;
+    }
+
+    이름이 없는 경우 재귀적호출
+    이름을 붙은 IIFE
+    var charsInBody = (function counter(elm) {
+        if (elm.nodeType == 3) {
+            return elm.nodeValue.lenth;
+        }
+        var count = 0;
+        for (var i = 0, child; child = elm.childNodes[i]; i++) {
+            count += counter(child);
+        }
+        return count;
+    }) (document.body);
+
+    함수 표현식에 제공된 이름은 함수 자체 스코프에서만 사용할 수 있습니다. 이 특징은 엔진에 의한 최적화뿐만 아니라 가독성을 높이는데 도움됩니다.
+    이름은 디버거와 스택 추적에서도 나타나므로 디버깅 시간을 줄일 수 있습니다.
+
+# 사용자 정의 객체
+    Class > https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Classes
+    JavaScript 객체 소개 > https://developer.mozilla.org/ko/docs/Learn/JavaScript/Objects
+    객체 모델의 세부 사항 > https://developer.mozilla.org/ko/docs/conflicting/Web/JavaScript/Inheritance_and_the_prototype_chain
+
+    
