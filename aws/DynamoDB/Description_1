@@ -185,28 +185,28 @@
 			'사용자'와 '주문' 관계가 1:N의 관계에 있고, 사용자의 '주문' 개수가 제한적이지 않은 상황일 경우.
 			# Order의 Attribute는 Profile과 다르다는 것을 알 수 있다. DynamoDB에서는 Attribute들을 Key의 내용에 따라 자유롭게 구성 할 수 있다. 
 	
-	|		Primary Key					|		Attributes												|
-	|	PK			|	SK			|															|
-	|	USER#alexdebrie		|	#PROFILE#alexdebrie	| Username	FullName	Email			CreatedAt	Adresses					|
-	|				|				| alexdebrie	Alex DeBrie	alexdebrie1@gmail.com	2018-03-23	{						|
-	|				|				|										"Home":{				|
-	|				|				|										    "StreetAddress":"111 1st St",	|
-	|				|				|										    "Stable":"Nebraska",		|
-	|				|				|										    "Country":"USA"			|
-	|				|				|										}					|
-	|				|				|									}						|
-	|				|	ORDER#5e7272b7		| Username	OrderId		Status			CreatedAt	Addresses					|
-	|				|				| alexdebrie	5e727b7		PLACED			2019-04-21	{"StreetAddress":"111 1st St", "Stable":"Nebrask|
-	|				|	ORDER#2e7abecc		| Username	OrderId		Status			CreatedAt	Addresses					|
-	|				|				| alexdebrie	2e7abecc	SHIPPED			2019-04-21	{"StreetAddress":"111 1st St", "Stable":"Nebrask|
-	|	USER#nedstark		|	#PROFILE#nedstark	| Username	FullName	Email			CreatedAt	Adresses					|
-	|				|				| nedstark	Eddard Stark	lord@winterfell.com	2016-02-27	{						|
-	|				|				|									  	"Home":{				|
-	|				|				|										    "StreetAdress":"1234 2nd Ave",	|
-	|				|				|									    	    "City:"Winterfell",			|
-	|				|				|									    	    "County":"Westeros"			|
-	|				|				|										}					|
-	|				|				|									}
+	|		Primary Key							|		Attributes																									|
+	|	PK				|	SK					|																													|
+	|	USER#alexdebrie	|	#PROFILE#alexdebrie	| Username		FullName		Email					CreatedAt	Adresses										|
+	|					|						| alexdebrie	Alex DeBrie		alexdebrie1@gmail.com	2018-03-23	{												|
+	|					|						|																		"Home":{									|
+	|					|						|										    								"StreetAddress":"111 1st St",			|
+	|					|						|										    								"Stable":"Nebraska",					|
+	|					|						|										    								"Country":"USA"							|
+	|					|						|																		}											|
+	|					|						|																	}												|
+	|	USER#alexdebrie	|	ORDER#5e7272b7		| Username		OrderId			Status					CreatedAt	Addresses										|
+	|					|						| alexdebrie	5e727b7			PLACED					2019-04-21	{"StreetAddress":"111 1st St", "Stable":"Nebrask|
+	|	USER#alexdebrie	|	ORDER#2e7abecc		| Username		OrderId			Status					CreatedAt	Addresses										|
+	|					|						| alexdebrie	2e7abecc		SHIPPED					2019-04-21	{"StreetAddress":"111 1st St", "Stable":"Nebrask|
+	|	USER#nedstark	|	#PROFILE#nedstark	| Username		FullName		Email					CreatedAt	Adresses										|
+	|					|						| nedstark		Eddard Stark	lord@winterfell.com		2016-02-27	{												|
+	|					|						|									  									"Home":{									|
+	|					|						|										    								"StreetAdress":"1234 2nd Ave",			|
+	|					|						|									    	    							"City:"Winterfell",						|
+	|					|						|									    	   			 					"County":"Westeros"						|
+	|					|						|																		}											|
+	|					|						|																	}												|
 
 			(3) Secondary index + Query
 			Secondary index를 이용
@@ -563,12 +563,145 @@
 			이 파라미터를 true로 설정하면 DynamoDB는 작업 중 강력히 일관된 읽기를 사용합니다.
 
 			# 읽기/쓰기 용량 모드
-			Amazon DynamoDB에는 
+			Amazon DynamoDB에는 테이블에서 읽기 및 쓰기 처리를 위한 두 가지 읽기/쓰기 용량 모드가 있습니다.
+				- 온디맨드
+				- 프로비저닝(기본값, 프리티어 이용가능)
+
+			읽기/쓰기 용량 모드는 읽기 및 쓰기 처리량에 대한 청구 방법과 용량 관리 방법을 제어합니다. 테이블을 생성할 때 읽기/쓰기 용량 모드를 설정하거나 나중에 변경할 수 있습니다.
 			
-		
+			보조 인덱스는 기본 테이블에서 읽기/쓰기 용량 모드를 상속합니다. 
+			> https://docs.aws.amazon.com/ko_kr/amazondynamodb/latest/developerguide/switching.capacitymode.html
 
+			# 온디맨드 모드
+			용량 계획 없이 초당 수천 개의 요청을 처리할 수 있는 유연한 청구 옵션입니다. DynamoDB on-demand는 읽기 및 쓰기 요청에 대해 요청당 지불 가격을 제공하므로 사용하는 만큼에 대해서만 비용을 지불하면 됩니다.
 
+			온디맨드 모드를 선택하면 DynamoDB는 이전에 도달한 트래픽 수준까지 확장 또는 축소할 때 즉시 워크로드를 수용합니다. 워크로드 트래픽 수준이 새로운 피크를 기록할 경우에는 DynamoDB가 워크로드를 수용하기 위해
+			신속하게 조정을 수정합니다. 온디맨드 모드를 사용하는 테이블은 DynamoDB가 이미 제공하는 것과 동일한 한 자릿수 밀리초 지연 시간, 서비스 수준 계약(SLA) 약정 및 보안을 제공합니다. 새로운 테이블과 기존 테이블에
+			모두 온디맨드를 선택할 수 있으며, 코드를 변경하지 않고 기존 DynamoDB API를 계속 사용할 수 있습니다.
 
+			온디맨드 모드는 다음 중 하나에 해당되는 경우에 유용한 옵션입니다.
+			- 알 수 없는 워크로드를 포함하는 테이블을 새로 만들 경우
+			- 애플리케이션 트래픽이 예측 불가능한 경우
+			- 사용한 만큰에 대해서만 지불하는 요금제를 사용하려는 경우
+
+			요청 빈도는 DynamoDB 처리량 기본 테이블 할당량에 의해서만 제한되지만, 요청에 따라 늘릴 수 있습니다.
+			> https://docs.aws.amazon.com/ko_kr/amazondynamodb/latest/developerguide/ServiceQuotas.html#default-limits-throughput
+
+			온디맨드 방식으로 시작하려면 온디맨드 모드를 사용하도록 테이블을 생성하거나 업데이트할 수 있습니다.
+			> https://docs.aws.amazon.com/ko_kr/amazondynamodb/latest/developerguide/WorkingWithTables.Basics.html
+
+			24시간마다 한 번 읽기/쓰기 용량 모드를 전환할 수 있습니다.
+			> https://docs.aws.amazon.com/ko_kr/amazondynamodb/latest/developerguide/switching.capacitymode.html
+
+			# 읽기 요청 단위 및 쓰기 요청 단위
+				온디맨드 모드 테이블의 경우 애플리케이션에서 수행할 것으로 예상되는 읽기 및 쓰기 처리량을 지정할 필요가 없습니다.
+				DynamoDB에서는 읽기 요청 단위 및 쓰기 요청 단위의 측면에서 애플리케이션이 테이블에서 수행하는 읽기 및 쓰기에 대해 요금이 부과됩니다.
+
+				DynamoDB 읽기 요청은 강력히 일관된 읽기, 최종 읽기 일관성 또는 트렌잭션 읽기 요청일 수 있습니다.
+					- 최대 4KB의 강력히 일관된 읽기 요청에는 하나의 읽기 요청 단위가 필요합니다.
+					- 최대 4KB의 최종 읽기 일관성 요청에는 절반의 읽기 요청 단위가 필요합니다.
+					- 최대 4KB의 트랜잭션 읽기 요청에는 2개의 읽기 요청 단위가 필요합니다.
+				
+				보다 큰 항목을 읽어야 하는 경우, DynamoDB에 추가 읽기 요청 단위가 필요합니다. 필요한 총 읽기 요청 단위 수는 항목 크기 및 최종적 일관된 읽기 (Eventually Consistent Read)와
+				강력한 일관된 읽기 (Strongly Consistent Read) 중 어느 것을 원하는지에 따라 달라집니다.
+				항목 크기가 8KB인 경우 강력히 일관된 읽기 1회를 지속하는데 읽기 요청 단위 2개가 필요하고, 최종적 일관된 읽기를 선택한 경우 읽기 요청 단위 1개가 필요하고, 트랜잭션 읽기 요청의 경우 읽기 요청 단위 4개가
+				필요합니다.
+
+				### 중요
+				존재하지 않는 항목에 대해 읽기 작업을 수행하는 경우 DynamoDB는 위에 설명된 대로 프로비저닝 읽기 처리량을 계속 사용합니다.
+
+				쓰기 요청 단위 1은 최대 1KB 크기의 항목에 대해 1회 쓰기를 나타냅니다. 1KB보다 큰 항목을 써야 하는 경우, DynamoDB가 추가 쓰기 요청 단위를 사용해야 합니다.
+				트랜잭션 쓰기 요청은 최대 1KB 크기 항목의 1회 쓰기를 수행하는데 2개의 쓰기 요청 단위가 필요합니다. 필요한 총 쓰기 요청 단위 수는 항목 크기에 따라 결정됩니다.
+				항목크기가 2KB인 경우 쓰기 요청 1회를 지속하는데 쓰기 요청 단위 2개가 필요하고, 트랜잭션 쓰기 요청의 경우 쓰기 요청 단위 4개가 필요합니다.
+
+			# 피크 트래픽 및 크기 조정 속성
+				온디맨드 용량 모드를 사용하는 DynamoDB 테이블은 애플리케이션의 트래픽 볼륨에 따라 자동으로 조정됩니다.
+				온디맨드 용량 모드의 테이블은 이전 피크 트래픽의 최대 2배 용량을 즉시 수용합니다.
+				애플리케이션의 트래픽 패턴이 25,000~50,000회 사이의 강력히 일관된 초당 읽기 범위 내에서 달라지고 이전 트래픽 피크의 초당 읽기 횟수가 50,000회인 경우 온디맨드 용량 모드에서는 초당 최대 100,000회
+				읽기 지속적 트래픽을 즉시 수용합니다. 애플리케이션이 초당 100,000회 읽기 트래픽을 지속하는 경우 해당 피크가 새로운 이전 피크가 되어 후속 트래픽은 초당 최대 200,000회 읽기에 도달할 수 있습니다.
+
+				테이블에 이전 피크의 2배 이상 용량이 필요한 경우 DynamoDB는 트래픽 볼륨이 증가할 때 워크로드 조절이 발생하지 않도록 더 많은 용량을 자동으로 할당합니다. 하지만 30분 이내에 이전 피크의 2배 용량을
+				초과할 경우 조절이 발생할 수 있습니다. 애플리케이션의 트래픽 패턴이 25,000~50,000회 사이의 강력히 일관된 초당 읽기 범위 내에서 달라지고 이전에 도달한 트래픽 피크의 초당 읽기 횟수가 50,000회인 경우
+				DynamoDB에서 최대 100,000회 이상 읽기를 구동하기 이전에 최소 30분 이상의 간격을 두고 트래픽을 늘리는 것이 좋습니다.
+
+			# 온디맨드 용량 모드의 초기 처리량
+				- 온디맨드 용량모드에서 새로 생성한 테이블 : 이전 피크는 2,000회 쓰기 요청 단위 또는 6,000회 읽기 요청 단위입니다.
+				이전 피크의 최대 2배를 즉시 구동할 수 있으므로 새로 생성된 온디맨드 테이블에서 최대 4,000회 쓰기 요청 단위, 12,000회 요청 단위를 처리 할 수 있습니다.
+				- 온디맨드 용량모드로 전환된 기존 테이블 : 이전 피크는 테이블이 생성된 이후 프로비저닝된 최대 쓰기 용량 유닛 및 읽기 용량 유닛의 절반 또는 온디맨드 용량 모드를 통해 새로 생성된
+				테이블의 설정 중 더 큰 값입니다. 즉, 테이블은 온디맨드 용량 모드로 전환되기 전과 같은 처리량을 제공합니다.
+
+			# 읽기/쓰기 용량 모드 전환 중 테이블 동작
+				테이블을 프로비저닝 용량 모드 > 온디맨드 용량 모드로 전환 시 테이블 및 파티션의 구조가 다양하게 변경됩니다. (몇 분 소요)
+				전환 기간 동안 테이블은 이전에 프로비저닝된 쓰기 용량 단위 및 읽기 용량 단위량과 일치하는 처리량을 제공합니다.
+				온디맨드 > 프로비저닝 다시 전환 시 온디맨드 용량 모드로 설정되었을 때 도달한 이전 피크와 일치하는 처리량을 제공합니다.
+
+			# 프로비저닝된 모드
+				애플리케이션에 필요한 초당 읽기 및 쓰기 횟수를 지정합니다.
+				Auto Scaling을 사용하여 트래픽 변경에 따라 테이블의 프로비저닝된 용량을 자동으로 조정할 수 있습니다.
+					- 애플리케이션 트래픽이 예측 가능한 경우
+					- 트래픽이 일관되거나 점진적으로 변화하는 애플리케이션을 실행할 경우
+					- 비용 관리를 위해 용량 요구 사항을 예측할 수 있는 경우
+
+			# 읽기 용량 단위 및 쓰기 용량 단위
+				읽기 용량 단위(RCU) 및 쓰기 용량 단위(WCU)의 측면에서 처리량을 지정합니다.
+					- 읽기 용량 단위 1은 초당 강력히 일관된 읽기 1회 또는 초당 최종적으로 일관된 읽기 2회(최대 4KB 크기 항목의 경우)를 나타냅니다.
+					트랜잭션 읽기 요청은 최대 4KB 크기 항목의 초당 1회 읽기를 수행하는 데 2개의 읽기 용량 단위가 필요합니다.
+					4KB보다 큰 항목을 읽어야 하는 경우, DynamoDB가 추가 읽기 용량 단위를 사용해야 합니다. 필요한 총 읽기 용량 단위 수는 항목 크기 및 최종적 일관된 읽기(Eventually Consistent Read)
+					와 강력한 일관된 읽기(Strongly Consistent Read) 중 어느 것을 원하는지에 따라 달라집니다. 예를 들어 항목 크기가 8KB인 경우 강력히 일관된 초당 읽기 1회를 지속하는데 읽기 용량 단위 2개가
+					필요하고, 트랜잭션 쓰기 요청의 경우 쓰기 용량 단위 4개가 필요합니다.
+					> https://docs.aws.amazon.com/ko_kr/amazondynamodb/latest/developerguide/ProvisionedThroughput.html#ItemSizeCalculations.Writes
+
+				### 중요
+				온디맨드 테이블에서 DescribeTable을 호출할 경우 읽기 용량 단위와 쓰기 용량 단위는 0으로 설정됩니다.
+
+				애플리케이션이 더 큰 항목(400KB의 DynamoDB 최대 항목 크기까지)을 일거나 쓸 경우 더 많은 용량 단위를 사용합니다.
+				6읽기 용량 단위와 6쓰기 용량 단위를 수용하는 프로비저닝된 테이블을 생성한다고 가정하겠습니다.
+				- 초당 최대 24KB의 강력히 일관된 읽기 수행 (4KB * 읽기 용량 단위 6)
+				- 초당 최대 48KB의 최종적 일관된 읽기 수행 (읽기 처리량의 2배)
+				- 초당 최대 12KB의 트랜잭션 읽기 요청을 수행합니다.
+				- 초당 최대 6KB 쓰기 (1KB * 쓰기 용량 단위 6)
+				- 초당 최대 3KB의 트랜잭션 쓰기 요청 수행
+
+				 > https://docs.aws.amazon.com/ko_kr/amazondynamodb/latest/developerguide/ProvisionedThroughput.html
+
+				 할당된 처리량은 애플리케이션이 테이블이나 인덱스에서 사용할 수 있는 최대 용량입니다. 테이블 또는 인덱스에 대해 프로비저닝된 처리량을 애플리케이션에서 초과할 경우 요청 조정이 적용됩니다.
+
+				 조절 기능은 애플리케이션에서 용량 단위를 너무 많이 사용하지 않도록 방지합니다. 요청이 조정될 경우 HTTP 400코드(Bad Request) 및 ProvisionedThroughtputExceededException과
+				 함께 실패합니다. AWS SDK는 조정된 요청 재시도를 기본적으로 지원하므로(오류 재시도 횟수 및 지수 백오프) 이 로직을 직접 쓸 필요는 없습니다.
+
+				 AWS Management Console을 사용하여 프로비저닝된 처리량과 실제 처리량을 모니터링하고, 필요한 경우 처리량 설정을 수정할 수 있습니다.
+
+			# DynamoDB 자동 크기 조정
+				AutoScaling을 사용하면 읽기 및 쓰기 용량 단위에 범위(상한 및 하한)를 지정할 수 있습니다. 또한 해당 범위에서의 목표 사용률을 정의할 수 있습니다.
+				테이블 또는 글로벌 보조 인덱스가 프로비저닝된 읽기 및 쓰기 용량을 늘려 요청 제한 없이 갑작스러운 트래픽 증가를 처리할 수 있습니다.
+				워크로드가 감소할 경우 DynamoDB Auto Scaling은 사용하지 않는 프로비저닝된 용량에 대한 요금을 지불하지 않도록 처리량을 줄일 수 있습니다.
+
+				### 참고
+				AWS Management Console을 사용하여 테이블이나 글로벌 보조 인덱스를 생성한 경우 DynamoDB Auto Scaling이 기본적으로 활성화됩니다.
+
+				Auto Scaling 설정은 콘솔, AWS CLI또는 AWS SDK 중 하나를 사용하여 언제든지 관리할 수 있습니다.
+				>https://docs.aws.amazon.com/ko_kr/amazondynamodb/latest/developerguide/AutoScaling.html
+
+			# 파티션 및 데이터 배포
+				파티션은 SSD로 백업되는 테이블용 스토리지 할당으로, AWS 리전 내의 여러 가용 영역에 자동으로 복제됩니다.
+				파티션 관리는 DynamoDB에서 전적으로 처리하므로 사용자가 파티션을 직접 관리할 필요가 없습니다.
+
+				테이블을 생성할 때 테이블 초기 상태는 CREATING입니다. 이 단계 동안,
+
+	# 테이블 생성
+		> https://docs.aws.amazon.com/ko_kr/amazondynamodb/latest/developerguide/SQLtoNoSQL.CreateTable.html
+
+	# 테이블에 대한 정보 가져오기
+		> https://docs.aws.amazon.com/ko_kr/amazondynamodb/latest/developerguide/SQLtoNoSQL.GetTableInfo.html
+
+	# 테이블에 데이터 쓰기
+		> https://docs.aws.amazon.com/ko_kr/amazondynamodb/latest/developerguide/SQLtoNoSQL.WriteData.html
+
+	# 테이블에서 데이터 읽을 때의 주요 차이점
+		> https://docs.aws.amazon.com/ko_kr/amazondynamodb/latest/developerguide/SQLtoNoSQL.ReadData.html
+
+	# 인덱스 관리
+		> https://docs.aws.amazon.com/ko_kr/amazondynamodb/latest/developerguide/SQLtoNoSQL.Indexes.html
 
 	@ reference
 	https://alphahackerhan.tistory.com/39

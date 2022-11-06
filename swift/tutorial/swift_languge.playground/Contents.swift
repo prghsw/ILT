@@ -678,37 +678,304 @@
 /*
     중첩 Loop와 break
  */
-for i in 1...3 {
-    for j in 1...3 {
-        if 1 == 2 {
-            break   //  j (for) 문을 빠져 나간다.
-        }
-        print("i = \(i), j = \(j)")
-    }
-    // break문을 만나면 여기로 온다.
-}
+//for i in 1...3 {
+//    for j in 1...3 {
+//        if 1 == 2 {
+//            break   //  j (for) 문을 빠져 나간다.
+//        }
+//        print("i = \(i), j = \(j)")
+//    }
+//    // break문을 만나면 여기로 온다.
+//}
 
 /*
     Labeled break
  */
-outerLoop: for i in 1...3 {
-    innerLoop: for j in 1...3 {
-        if j == 3 {
-            break outerLoop //  outerLoop를 빠져 나간다.
-        }
-        
-        print("i = \(i), j = \(j)")
-    }
-}
+//outerLoop: for i in 1...3 {
+//    innerLoop: for j in 1...3 {
+//        if j == 3 {
+//            break outerLoop //  outerLoop를 빠져 나간다.
+//        }
+//
+//        print("i = \(i), j = \(j)")
+//    }
+//}
 // break를 만나면 여기로 온다.
 
 /*
     for loop와 continue
  */
-for i in 1...5 {
-    if i == 3 {
-        continue    //  
-    }
-    print(i)
-}
+//for i in 1...5 {
+//    //  >>> 여기로 이동
+//    if i == 3 {
+//        continue    //  for문을 시작 부분으로 이동.
+//    }
+//    print(i)
+//}
 
+/*
+    while loop와 continue
+ */
+//var num = 0
+//while num <= 10 {
+//    //  >>> 여기로 이동
+//    num += 1
+//    if (num % 2) == 0 {
+//        continue    //  while문의 시작으로 올라간다.
+//    }
+//
+//    print("\(num)")
+//}
+
+/*
+    중첩 Loops와 continue
+ */
+//for i in 1...3 {
+//    for j in 1...3 {
+//        //  >>> 여기로 이동
+//        if j == 2 {
+//            continue    //  j for문의 시작부분으로 이동한다.
+//        }
+//
+//        print("i = \(i), j = \(j)")
+//    }
+//}
+
+/*
+    Labeled continue
+ */
+//outerloop: for i in 1...3 {
+//    //  >>> 여기로 이동
+//    innerloop: for j in 1...3 {
+//        if j == 3 {
+//            continue outerloop  //  outerloop 시작부분으로 이동한다.
+//        }
+//        print("i = \(i), j = \(j)")
+//    }
+//}
+
+/*
+    guard 구문
+    
+    guard expression else {
+        // statements
+        //  control statement : return, break, continue or throw.
+    }
+ 
+    true - guard의 구문내 코드를 실행하지 않는다.
+    false - guard의 구문내 코드를 실행한다.
+ */
+//var i = 2
+//while (i <= 10) {
+//    guard i % 2 == 0 else {
+//        i = i + 1
+//        continue
+//    }
+//    print(i)
+//    i = i + 1
+//}
+
+/*
+    함수 내 guard 구문
+ */
+//func checkOddEven() {
+//    var number = 22
+//
+//    guard number % 2 == 0 else {
+//        print("Odd Number")
+//        return
+//    }
+//    print("Even Number")
+//}
+//
+//checkOddEven()
+
+/*
+    다중 조건 guard 구문
+ */
+//func checkJobEligibility() {
+//    var age = 33
+//
+//    //  다중 조건의 경우 (,)를 사용하여 분리 한다.
+//    guard age >= 18, age <= 40 else {
+//        print("Not Eligible for Job")
+//        return
+//    }
+//
+//    print("You are eligible for this job")
+//}
+//
+//checkJobEligibility()
+
+/*
+    guard-let 구문
+ */
+//func checkAge() {
+//    var age: Int? = 22
+//
+//    //  옵셔널 변수가 값이 있으면 myAge를 생성하고 아래 코드를 실행 옵셔널이 비어 있으면 else 내 코드 실행
+//    guard let myAge = age else {
+//        print("Age is undefined")
+//        return
+//    }
+//    print("My age is \(myAge)")
+//}
+//
+//checkAge()
+
+/*
+    guard Vs if
+ */
+//func voteEligibility() {
+//    var age = 42
+//
+//    if age >= 18 {
+//        print("Eligible to vote")
+//    } else {
+//        print("Not eligible to vote")
+//    }
+//}
+//
+//voteEligibility()
+
+//func voteEligibility() {
+//    var age = 42
+//
+//    guard age >= 18 else {
+//        print("Not Eligible to vote")
+//        return
+//    }
+//    print("Eligible to vote")
+//}
+//
+//voteEligibility()
+
+/*
+    Arrays
+ */
+/*
+    Array 생성
+ */
+//var numbers : [Int] = [2, 4, 6, 8]
+//print("Array: \(numbers)")
+//
+//var value = [Int]()
+//print(value)
+
+/*
+    Array 요소 접근
+ */
+//var languages = ["Swift", "Java", "C++"]
+//
+//print(languages[0])
+//print(languages[2])
+      
+
+/*
+    Array 요소 추가
+ */
+//var numbers = [21, 34, 54, 12]
+//
+//print("Before Append: \(numbers)")
+//numbers.append(32)
+//print("After Append: \(numbers)")
+//
+//var primeNumbers = [2, 3, 5]
+//print("Array1 : \(primeNumbers)")
+//var evenNumbers = [4, 6, 8]
+//print("Array2 : \(evenNumbers)")
+//primeNumbers.append(contentsOf: evenNumbers)
+//print("Array after append: \(primeNumbers)")
+//
+///*
+//    insert
+// */
+//print("Before Insert: \(numbers)")
+//numbers.insert(32, at: 1)
+//print("After Insert: \(numbers)")
+
+/*
+    Array 요소 수정
+ */
+//var dailyActivities = ["Eat", "Repeat"]
+//print("Initial Array : \(dailyActivities)")
+//dailyActivities[1] = "Sleep"
+//print("Updated Array : \(dailyActivities)")
+
+/*
+    Array 요소 삭제
+ 
+    removeFirst - 첫 번째 요소
+    removeLast  - 마지막 요소
+    removeAll   - 모든 요소
+ */
+//var languages = ["Swift", "Java", "Python"]
+//print("Initial Array : \(languages)")
+//let removedValue = languages.remove(at: 1)
+//print("Updated Array : \(languages)")
+//print("Removed value : \(removedValue)")
+
+/*
+    Array 다른 메소드
+    sort    - 요소 정렬
+    shuffle - 요소 섞기
+    forEach - 요소 for each 돌리기
+    contains    - 요소 찾기
+    swapAt  - 요소 위치 바꾸기
+    reverse - 요소 반전
+ */
+
+/*
+    요소 Loop 처리
+ */
+//let fruits = ["Apple", "Peach", "Mango"]
+//
+//for fruit in fruits {
+//    print(fruit)
+//}
+
+/*
+    Array 요소 건수
+ */
+//let evenNumbers = [2, 4, 6, 8]
+//print("Array : \(evenNumbers)")
+//print("Total Elements : \(evenNumbers.count)")
+
+/*
+    Array가 비어 있는지 확인하기.
+ */
+//let numbers = [21, 33, 59, 17]
+//print("Numbers : \(numbers)")
+//
+//var result = numbers.isEmpty
+//print("Is numbers empty? : \(result)")
+//
+//let evenNumbers = [Int]()
+//print("Even Numbers : \(evenNumbers)")
+//
+//result = evenNumbers.isEmpty
+//print("Is evenNumbers empty? : \(result)")
+
+/*
+    Array Data Type 여러개 넣기
+ */
+//var address: [Any] = ["Scranton", 570]
+//print(address)
+
+/*
+    Sets
+    
+    set은 중복 값을 가질 수 없다. 모든 값은 유니크하다.
+ 
+    순서를 보장하지 않는다.
+ */
+//var studentID : Set = [112, 114, 116, 118, 115]
+//print("student ID : \(studentID)")
+
+/*
+    Set에 값 추가
+ */
+var numbers: Set = [21, 34, 54, 12]
+print("Initial Set : \(numbers)")
+numbers.insert(32)
+print("Updated Set : \(numbers)")

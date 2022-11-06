@@ -80,6 +80,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.consumePositionChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.input.pointer.util.VelocityTracker
@@ -102,6 +103,8 @@ import com.example.android.codelab.animation.ui.Purple700
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.absoluteValue
+import kotlin.math.roundToInt
 
 private enum class TabPage {
     Home, Work
@@ -502,16 +505,44 @@ private fun HomeTabIndicator(
         각 애니메이션 값은 Transition의 animate* 확장 함수를 사용하여 선언할 수 있습니다.
         animateDp 및 animateColor를 사용합니다. 람다 블록을 사용하므로 각 상태의 타겟 값을 지정할 수 있습니다.
         animate*함수가 State객체를 반환하므로 여기서 다시 by 선언을 사용하고 이를 로컬 위임 속성으로 만들 수 있습니다.
+
+        transitionSpec 매개변수를 지정하여 애니메이션 동작을 맞춤설정할 수 있습니다.
+        대상에 더 가까운 가장자리가 다른 가장자리보다 빠르게 움직이게 하여 표시기의 탄력 효과를 얻을 수 있습니다.
+        transitionSpec 람다에서 isTransitioningTo 중위 함수를 사용하여 상태 변경 방향을 결정할 수 있습니다.
+
+        ### Animation Preview (Start Animation Preview)를 클릭하여 대화형 모드를 시작할 수 있다.
+        > https://developer.android.com/jetpack/compose/tooling#enable-experimental-features
      */
 //    val indicatorLeft = tabPositions[tabPage.ordinal].left
 //    val indicatorRight = tabPositions[tabPage.ordinal].right
 //    val color = if (tabPage == TabPage.Home) Purple700 else Green800
 
-    val transition = updateTransition(tabPage, label = "Tab indicator")
-    val indicatorLeft by transition.animateDp(label = "Indicator left") { page ->
+    val transition = updateTransition(
+        tabPage,
+        label = "Tab indicator"
+    )
+    val indicatorLeft by transition.animateDp(
+        transitionSpec = {
+            if (TabPage.Home isTransitioningTo TabPage.Work) {
+                spring(stiffness = Spring.StiffnessVeryLow)
+            } else {
+                spring(stiffness = Spring.StiffnessMedium)
+            }
+        },
+        label = "Indicator left"
+    ) { page ->
         tabPositions[page.ordinal].left
     }
-    val indicatorRight by transition.animateDp(label = "Indicator right") { page ->
+    val indicatorRight by transition.animateDp(
+        transitionSpec = {
+             if (TabPage.Home isTransitioningTo TabPage.Work) {
+                 spring(stiffness = Spring.StiffnessMedium)
+             } else {
+                 spring(stiffness = Spring.StiffnessVeryLow)
+             }
+        },
+        label = "Indicator right"
+    ) { page ->
         tabPositions[page.ordinal].right
     }
     val color by transition.animateColor(label = "Border color") { page ->
@@ -602,8 +633,50 @@ private fun WeatherRow(
  */
 @Composable
 private fun LoadingRow() {
+    /*
+        애니메이션 반복
+        InfiniteTransition 을 사용하여 반복적으로 애니메이션 처리.
+        Transition API와 유사합니다. 둘 다 여러 값에 애니메이션을 적용하지만 Transition은 상태 변경에 따라 값에
+        애니메이션을 적용하고 InfiniteTransition은 값에 무기한으로 애니메이션을 적용합니다.
+
+        InfiniteTransition을 만들려면 rememberInfiniteTransition함수를 사용합니다.
+        그런 다음 각 애니메이션 값 변경을 InfiniteTransition의 animate* 확장 함수 중 하나를 사용하여 선언할 수
+        있습니다.
+        여기서는 알파 값에 애니메이션을 적용하므로 animatedFloat를 사용하겠습니다. initialValue 매개변수는 0f여야
+        하고, targetValue는 1f여야 합니다. 이 애니메이션의 AnimateSpec을 지정할 수도 있지만 이 API는
+        InfiniteRepeatableSpec만 사용합니다.
+        infiniteRepeatable 함수를 사용하여 만듭니다.
+        이 AnimateSpec은 지속 시간 기반 AnimationSpec을 래핑하여 반복 가능하게 합니다.
+
+        기본 repeatMode는 RepeatMode.Restart입니다.
+        이 경우, 애니메이션이 initialValue에서 targetValue로 전환되고 initialValue에서 다시 시작됩니다.
+        repeatMode를 RepeatMode.Reverse로 설정하면 애니메이션이 initialValue에서 targetValue로
+        진행된 후 targetValue에서 initalValue로 진행됩니다. 애니메이션은 0에서 1까지 진행된 후 1에서 0으로
+        진행됩니다.
+
+        keyFrames 애니메이션은 다른 밀리초 단위에서 진행중인 값을 변경할 수 있는 또 다른 유형의 animationSpec
+        (일부는 tween 및 spring)입니다. 처음에는 durationMillis를 1,000ms로 설정합니다. 그런 다음 애니메이션에서
+        키프레임을 정의 할 수 있습니다. 예를 들어 애니메이션의 500ms에서 알파 값을 0.7f가 되도록 설정하려고 합니다.
+        그러면 애니메이션의 진행률이 변경됩니다. 애니메이션의 500ms 내에서 0에서 0.7까지 빠르게 진행되고 애니메이션의 500ms에서
+        1000ms까지는 0.7에서 1.0까지 천천히 속도를 줄이며 끝을 향해 진행됩니다.
+
+        두 개 이상의 키프레임을 원하는 경우 여러 개를 정의할 수 있습니다.
+     */
     // TODO 5: Animate this value between 0f and 1f, then back to 0f repeatedly.
-    val alpha = 1f
+    val infiniteTransition = rememberInfiniteTransition()
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 1000
+                0.7f at 500
+//              0.9f at 800
+            },
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+//    val alpha = 1f
     Row(
         modifier = Modifier
             .heightIn(min = 64.dp)
@@ -666,7 +739,34 @@ private fun TaskRow(task: String, onRemove: () -> Unit) {
 private fun Modifier.swipeToDismiss(
     onDismissed: () -> Unit
 ): Modifier = composed {
+    /*
+        터치 입력을 기반으로 애니메이션을 실행하는 방법
+        ### 참고
+        SwipeToDismiss는 자체 맞춤 수정자를 구현하는 대신 사용할 수 있는 Material의 컴포저블입니다.
+
+        터치로 요소를 스와이프할 수 있도록 하는 수정자를 만들려고 합니다.
+        요소가 화면 가장자리로 플링되면 요소가 삭제될 수 있도록 onDismissed 콜백을 호출합니다.
+
+        swipeToDimiss 수정자를 빌드하려면 몇 가지 주요 개념을 알아야 합니다. 먼저 사용자가 화면에 손가락을 대면
+        x 및 y 좌표가 있는 터치 이벤트가 발생되고 손가락을 오른쪽으로 이동하면 이동에 따라 x 및 y 좌표도 이동합니다.
+        사용자가 터치하는 항목은 손가락에 따라 이동해야 하므로 터치 이벤트의 위치와 속도에 따라 항목의 위치가 업데이트됩니다.
+
+        Compose 동작 문서
+        >https://developer.android.com/jetpack/compose/gestures
+
+        pointInput 수정자를 사용하면 수신되는 포인터 처치 이벤트에 대한 하위 수준 액세스 권한을 얻고 동일한 포인터를 사용하여
+        사용자가 드래그하는 속도를 추적할 수 있습니다. 닫기 위한 경계를 항목이 지나기 전에 사용자가 손을 떼면 항목은 위치로 다시 돌아옵니다.
+
+        시나리오에서 고려해야 할 사항. 첫째, 진행 중인 애니메이션이 터치 이벤트로 중단될 수 있습니다.
+        둘째, 애니메이션 값이 유일한 정보 소스가 아닐 수도 있습니다. 즉, 애니메이션 값을 터치 이벤트에서 발생하는 값과
+        동기화해야 할 수도 있습니다.
+
+        Animatable은 지금까지 살펴본 API중 최저 수준의 API입니다. 동작 시나리오에서 유용한 여러 기능이 있습니다.
+        동작에서 비롯되는 새로운 값으로 즉시 스냅하고 새 터치 이벤트가 트리거될 때 진행 중인 애니메이션을 중지하는 기능입니다.
+        Animatable의 인스턴스를 만들고 이를 사용하여 스와이프할 수 있는 요소의 가로 오프셋을 나타내 보겠습니다.
+     */
     // TODO 6-1: Create an Animatable instance for the offset of the swiped element.
+    val offsetX = remember { Animatable(0f) }
     pointerInput(Unit) {
         // Used to calculate a settling position of a fling animation.
         val decay = splineBasedDecay<Float>(this)
@@ -676,12 +776,29 @@ private fun Modifier.swipeToDismiss(
                 // Wait for a touch down event.
                 val pointerId = awaitPointerEventScope { awaitFirstDown().id }
                 // TODO 6-2: Touch detected; the animation should be stopped.
+                /*
+                    현재 실행 중인 경우 애니메이션을 중단해야 합니다. Animatable에서 stop을 호출하면 됩니다.
+                    애니메이션이 실행되지 않는 경우 호출은 무시됩니다.
+                    VelocityTracker는 사용자가 왼쪽에서 오른쪽으로 이동하는 속도를 계산하는 데 사용합니다.
+                    awaitPointerEventScope는 사용자 입력 이벤트를 기다렸다가 이에 응답할 수 있는 정지 함수입니다.
+                 */
+                offsetX.stop()
                 // Prepare for drag events and record velocity of a fling.
                 val velocityTracker = VelocityTracker()
                 // Wait for drag events.
                 awaitPointerEventScope {
                     horizontalDrag(pointerId) { change ->
                         // TODO 6-3: Apply the drag change to the Animatable offset.
+                        /*
+                            드래그 이벤트를 계속 수신하고 있습니다. 터치 이벤트의 위치를 애니메이션 값에 동기화해야 합니다.
+                            Animatable에서 snapTo를 사용하면 됩니다. snapTo는 다른 launch 블록 내에서 호출해야 합니다.
+                            awaitPointerEventScope 및 horizontalDrag가 제한된 코루틴 범위이기 때문입니다.
+                            즉, awaitPointerEvents의 경우에만 suspend 될 수 있습니다. snapTo는 포인터 이벤트가 아닙니다.
+                         */
+                        val horizontalDragOffset = offsetX.value + change.positionChange().x
+                        launch {
+                            offsetX.snapTo(horizontalDragOffset)
+                        }
                         // Record the velocity of the drag.
                         velocityTracker.addPosition(change.uptimeMillis, change.position)
                         // Consume the gesture event, not passed to external
@@ -692,18 +809,33 @@ private fun Modifier.swipeToDismiss(
                 val velocity = velocityTracker.calculateVelocity().x
                 // TODO 6-4: Calculate the eventual position where the fling should settle
                 //           based on the current offset value and velocity
+                val targetOffsetX = decay.calculateTargetValue(offsetX.value, velocity)
                 // TODO 6-5: Set the upper and lower bounds so that the animation stops when it
                 //           reaches the edge.
+                offsetX.updateBounds(
+                    lowerBound = -size.width.toFloat(),
+                    upperBound = size.width.toFloat()
+                )
                 launch {
                     // TODO 6-6: Slide back the element if the settling position does not go beyond
                     //           the size of the element. Remove the element if it does.
+                    if (targetOffsetX.absoluteValue <= size.width) {
+                        //  Not enough velocity; Slide Back.
+                        offsetX.animateTo(targetValue = 0f, initialVelocity = velocity)
+                    } else {
+                        //  Enough velocity to slide away the element to the edge.
+                        offsetX.animateDecay(velocity, decay)
+                        //  The element was swiped away.
+                        onDismissed()
+                    }
                 }
             }
         }
     }
+        //  Apply the horizontal offset to the element.
         .offset {
             // TODO 6-7: Use the animating offset value here.
-            IntOffset(0, 0)
+            IntOffset(offsetX.value.roundToInt(), 0)
         }
 }
 

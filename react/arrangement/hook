@@ -1,0 +1,172 @@
+
+import React, { useState } from 'react';
+
+function Example() {
+    // useState가 바로 Hook입니다.
+    // useState는 현재의 state값과 이 값을 업데이트하는 함수를 쌍으로 제공합니다.
+    // 우리는 이 함수를 이벤트 핸들러나 다른 곳에서 호출 할 수 있습니다.
+    // useState는 인자로 초기 state 값을 하나 받습니다. 초기값 > 0으로 설정 함.
+    // this.state와 달리 useState Hook의 state는 객체일 필요가 없습니다.
+    // 이 초기 값은 첫 번째 렌더링에만 딱 한번 사용됩니다.
+    // "count" 라는 새 상태 변수를 선언 합니다.
+    const [count, setCount] = useState(0);
+    
+    return (
+        <div>
+            <p>You clicked {count} times </p>
+            <button onClick={() => setCount(count + 1)}>
+                Click me
+            </button>
+        </div>
+    );
+}
+
+// 여러 state변수 선언하기
+function ExampleWithManyStates() {
+    // 상태 변수를 여러 개 선언했습니다!
+    const [age, setAge] = useState(42);
+    const [fruit, setFruit] = useState('banana');
+    const [todos, setTodos] = useState([{ text : 'Learn Hooks'}]);
+    // ...
+}
+/*
+    React는 매번 랜더링할 때 useState가 사용된 순서대로 실행할 것 입니다.
+    Hook은 함수 컴포넌트에서 React state와 생명주기 기능 (lifecycle features)을 "연동(hook into)"할 수 있게 해주는 함수 입니다.
+    Hook은 class안에서는 동작하지 않습니다.
+    대신 class없이 React를 사용할 수 있게 해주는 것입니다.
+*/
+
+### Effect Hook
+    * side effects 
+    React 컴포넌트 안에서 데이터를 가져오거나 구독하고, DOM을 직접 조작하는 작업입니다.
+
+    useEffect는 함수 컴포넌트 내에서 side effects를 수행할 수 있게 해줍니다.
+    React class의 componentDidMount 나 componentDidUpdate, componentWillUnmount와 같은 목적으로 제공되지만, 하나의 API로 통합된 것입니다.
+
+import React, { useState, useEffect } from 'react';
+
+function Example() {
+  const [count, setCount] = useState(0);
+
+  // componentDidMount, componentDidUpdate와 비슷합니다
+  useEffect(() => {
+    // 브라우저 API를 이용해 문서의 타이틀을 업데이트합니다
+    document.title = `You clicked ${count} times`;
+  });
+
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>
+        Click me
+      </button>
+    </div>
+  );
+}
+
+    useEffect를 사용하면, React는 DOM을 바꾼 뒤에 “effect” 함수를 실행할 것입니다. 
+    Effects는 컴포넌트 안에 선언되어있기 때문에 props와 state에 접근할 수 있습니다. 
+    매 렌더링 이후에 effects를 실행합니다.
+
+    Effect를 "해제"할 필요가 있다면, 해제하는 함수를 반환해주면 됩니다.
+
+import React, { useState, useEffect } from 'react';
+
+function FriendStatus(props) {
+  const [isOnline, setIsOnline] = useState(null);
+
+  function handleStatusChange(status) {
+    setIsOnline(status.isOnline);
+  }
+
+    // 친구의 접속 상태를 구독하는 effect를 사용했고, 구독을 해지함으로써 해제합니다.
+  useEffect(() => {
+    // 랜더링 시 친구의 접속 상태를 구독 합니다.
+    ChatAPI.subscribeToFriendStatus(props.friend.id, handleStatusChange);
+    // 컴포넌트 unmount될 때 구독을 해제 합니다.
+    return () => {
+      ChatAPI.unsubscribeFromFriendStatus(props.friend.id, handleStatusChange);
+    };
+  });
+
+  if (isOnline === null) {
+    return 'Loading...';
+  }
+  return isOnline ? 'Online' : 'Offline';
+}
+    컴포넌트가 unmount될 때 react는 ChatAPI에서 구독을 해지합니다.
+    재 렌더링이 일어나 effect를 재실행하기 전에도 마찬가지로 구독을 해지합니다.
+
+    useState와 마찬가지로 컴포넌트 내에서 여러 개의 effect를 사용할 수 있습니다.
+
+function FriendStatusWithCounter(props) {
+  const [count, setCount] = useState(0);
+
+  // effect 발생
+  useEffect(() => {
+    document.title = `You clicked ${count} times`;
+  });
+
+  const [isOnline, setIsOnline] = useState(null);
+
+  // effect 발생
+  useEffect(() => {
+    ChatAPI.subscribeToFriendStatus(props.friend.id, handleStatusChange);
+    return () => {
+      ChatAPI.unsubscribeFromFriendStatus(props.friend.id, handleStatusChange);
+    };
+  });
+
+  function handleStatusChange(status) {
+    setIsOnline(status.isOnline);
+  }
+  // ...
+
+    Hook을 사용하면 구독을 추가하고 제거하는 로직과 같이 서로 관련 있는 코드들을 한군데에 모아서 작성할 수 있습니다.
+    반면 class 컴포넌트에서는 생명주기 메서드(lifecycle methods) 각각에 쪼개서 넣어야만 했습니다.
+
+# Hook 사용 규칙
+    - 최상위(at the top level)에서만 Hook을 호출해야합니다. 반복문, 조건문, 중첩된 함수 내에서 Hook을 실행하지 마세요.
+    - React 함수 컴포넌트 내에서만 Hook을 호출해야 합니다. 일반 Javascript 함수내에서는 Hook을 호출해서는 안됩니다.
+
+    이 규칙들을 강제하기 위해서 linter plugin을 제공하고 있습니다. 
+
+# 나만의 Hook 만들기
+
+import React, { useState, useEffect } from 'react';
+
+function useFriendStatus(friendID) {
+  const [isOnline, setIsOnline] = useState(null);
+
+  function handleStatusChange(status) {
+    setIsOnline(status.isOnline);
+  }
+
+  useEffect(() => {
+    ChatAPI.subscribeToFriendStatus(friendID, handleStatusChange);
+    return () => {
+      ChatAPI.unsubscribeFromFriendStatus(friendID, handleStatusChange);
+    };
+  });
+
+  return isOnline;
+}
+
+function FriendStatus(props) {
+  const isOnline = useFriendStatus(props.friend.id);
+
+  if (isOnline === null) {
+    return 'Loading...';
+  }
+  return isOnline ? 'Online' : 'Offline';
+}
+
+function FriendListItem(props) {
+  const isOnline = useFriendStatus(props.friend.id);
+
+  return (
+    <li style={{ color: isOnline ? 'green' : 'black' }}>
+      {props.friend.name}
+    </li>
+  );
+}
