@@ -18,3 +18,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # 리소스 정보를 추가한다. (이미지...)
+  assets:
+    - assets/images/bg/
+    - assets/images/ui/
+    - assets/images/branding/
+    - assets/images/flies/
