@@ -3,4 +3,5 @@ enum View {
   playing,
   lost,
   help,
+  credit,
 }

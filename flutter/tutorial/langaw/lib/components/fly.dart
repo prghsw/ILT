@@ -6,11 +6,12 @@ import 'package:flame/input.dart';
 import 'package:langaw/components/flyKind.dart';
 import 'package:langaw/extension/hasGameRef-extension.dart';
 import 'package:langaw/langaw-game.dart';
+import 'package:langaw/view.dart';
 
 class Fly extends SpriteAnimationComponent with HasGameRef<LangawGame>, Tappable {
   // late Rect _flyRect;  //  위치, 크기 설정
   // Paint _flyPaint;  //  컴포넌트 색상
-  // bool _isOffScreen = false;  //  화면 밖으로 벗어난 여부
+  bool isOffScreen = false;  //  화면 밖으로 벗어난 여부
   bool isDead = false; //  파리 컴포넌트의 죽음 여부
   late double speed; //  파리 이동 속도
   late Vector2 targetLocation;  //  이동할 타겟 위치
@@ -61,7 +62,7 @@ class Fly extends SpriteAnimationComponent with HasGameRef<LangawGame>, Tappable
       position.add(Vector2(0, size.x * 12 * dt)); //  실제 컴포넌트의 위치를 변경한다.
       //  파리 컴포넌트가 화면 밖으로 나갔는지 확인한다.
       if (position.y > gameRef.size.y) {
-        // _isOffScreen = true;
+        isOffScreen = true;
         removeFromParent();
       }
     } else {
@@ -78,8 +79,14 @@ class Fly extends SpriteAnimationComponent with HasGameRef<LangawGame>, Tappable
   //  마우스 클릭 처리
   @override
   bool onTapDown(TapDownInfo info) {
+    if (!isDead) {
+      isDead = true;
+      if (gameRef.activeView == View.playing) {
+        gameRef.score += 1;
+      }
+    }
     // _flyPaint.color = Color(0xffff4757);  //  클릭 시 색상 변경
-    isDead = true;
+    
     // gameRef.flies.remove(this);
     // gameRef.spawnFly();
     return super.onTapDown(info);

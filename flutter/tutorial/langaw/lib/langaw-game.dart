@@ -1,26 +1,31 @@
-import 'package:langaw/components/help-button.dart';
+import 'package:langaw/components/credits.dart';
+import 'package:langaw/components/help.dart';
+import 'package:langaw/components/score-display.dart';
 import 'package:langaw/components/start-button.dart';
 import 'package:langaw/constollers/spawner.dart';
 import 'package:langaw/views/lost-view.dart';
-
-import 'components/fly.dart';
 import 'components/backyard.dart';
 import 'package:langaw/view.dart';
 import 'package:flame/game.dart';
+import 'package:flame/input.dart';
 import 'views/home-view.dart';
 import 'dart:ui';
 
 class LangawGame extends FlameGame with HasTappables {
   // final List<Fly> _flies = [];
-  Backyard backyard = Backyard(); //  백그라운드 이미지
-  HomeView homeView = HomeView(); //  홈 이미지
-  LostView lostView = LostView(); //  게임 종료 이미지
-  FlySpawner flySpawner = FlySpawner(); //  파리 스폰 컴포넌트
-  StartButton startButton = StartButton();  //  시작 버튼
-  HelpButton helpButton = HelpButton(); //  도움말 버튼
+  late Backyard backyard; //  백그라운드 이미지
+  late HomeView homeView; //  홈 이미지
+  late LostView lostView; //  게임 종료 이미지
+  late FlySpawner flySpawner; //  파리 스폰 컴포넌트
+  late StartButton startButton;  //  시작 버튼
+  late Help help; //  도움말 컴포넌트
+  late Credits credits;  //  크레딧 컴포넌트
+  late ScoreDisply scoreDisplay;  //  스코어 컴포넌트
   View activeView = View.home;  //  게임 상태
   // List<Fly> flies = []; //  생성된 파리 개체 목록
   bool didHitAFly = false;
+  bool isHandled = false;  //  컴포넌트 클릭 처리 관련. 컴포넌트가 클릭 되면 처리 중으로 표시하여 다른 행동 못하도록 한다.
+  int score = 0;  //  점수
 
   @override
   bool debugMode = true;
@@ -29,11 +34,36 @@ class LangawGame extends FlameGame with HasTappables {
   @override
   Future<void> onLoad() async {
     super.onLoad();
+    //  백그라운드 추가.
+    backyard = Backyard();
     add(backyard);
-    add(homeView);
-    add(helpButton);
-    add(startButton);
+
+    //  파리 스폰 컨트롤러 추가.
+    flySpawner = FlySpawner();
     add(flySpawner);
+    
+    // 타이틀 추가.
+    homeView = HomeView();
+    add(homeView);
+
+    //  시작 버튼 추가.
+    startButton = StartButton();
+    add(startButton);
+
+    //  도움말 추가.
+    help = Help();
+    add(help);
+
+    //  크레딧 버튼 추가.
+    credits = Credits();
+    add(credits);
+
+    //  스코어 컴포넌트 생성
+    scoreDisplay = ScoreDisply();
+
+    //  게임오버 화면
+    lostView = LostView();
+
     // this.spawnFly();  //  파리 생성
   }
 
@@ -44,20 +74,78 @@ class LangawGame extends FlameGame with HasTappables {
 
   @override
   void update(double dt) {
-    if (activeView == View.playing && !didHitAFly) {
-      activeView = View.lost;
-    }
-
-    // if (activeView == View.lost) {
-    //   if (!lostView.isMounted) {
-    //     _handleGameLost();
-    //   }
-    // }
     super.update(dt);
   }
 
-  void _handleGameLost() {
+  //  화면 탭시 handle 처리
+  // @override
+  // void onTapDown(int pointerId, TapDownInfo info) {
+  //   print("?");
+  //   info.handled = isHandled;
+  //   super.onTapDown(pointerId, info);
+  // }
+
+  //  플레이 화면 구성
+  void handlePlaying() {
+    score = 0;
+
+    remove(startButton);
+    remove(credits);
+    remove(help);
+    
+    if (activeView != View.lost) {
+      remove(homeView);
+      flySpawner.add(scoreDisplay);
+    } else {
+      remove(lostView);
+    }
+    
+    flySpawner.start();
+    activeView = View.playing;
+  }
+
+  //  HOME 화면 구성
+  void handleHome() {
+    //  파리 스포너 추가.
+    add(flySpawner);
+    //  타이틀 추가.
+    add(homeView);
+    //  시작버튼 추가.
+    add(startButton);
+  }
+
+  //  도움말 화면 구성
+  void handleHelp() {
+    if (activeView == View.home) {
+      handleHome();
+      add(credits);
+    } else{
+      remove(flySpawner);
+      remove(homeView);
+      remove(startButton);
+      remove(credits);
+      
+    }
+  }
+
+  //  크레딧 화면 구성
+  void handleCredit() {
+    if (activeView == View.home) {
+      handleHome();
+      add(help);
+    } else {
+      remove(flySpawner);
+      remove(homeView);
+      remove(startButton);
+      remove(help);
+    }
+  }
+
+  void handleGameLost() {
     add(lostView);
+    add(startButton);
+    add(help);
+    add(credits);
   }
 
   //  백그라운드 변경

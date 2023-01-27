@@ -22,10 +22,9 @@ class StartButton extends SpriteComponent with HasGameRef<LangawGame>, Tappable 
   // 터치 다운 처리
   @override
   bool onTapDown(TapDownInfo info) {
-    gameRef.activeView = View.playing;
-    gameRef.homeView.removeFromParent();
-    gameRef.flySpawner.start();
-    this.removeFromParent();
+    gameRef.isHandled = true;
+    gameRef.handlePlaying();
+    info.handled = true;
     return super.onTapDown(info);
   }
 }

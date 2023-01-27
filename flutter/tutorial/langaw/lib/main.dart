@@ -22,6 +22,7 @@ void main() async {
     'ui/icon-credits.png',
     'ui/icon-help.png',
     'ui/start-button.png',
+    'ui/callout.png',
     'flies/agile-fly-1.png',
     'flies/agile-fly-2.png',
     'flies/agile-fly-dead.png',

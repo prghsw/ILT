@@ -2,23 +2,30 @@
 
 
 import 'package:flame/components.dart';
+import 'package:flame/input.dart';
 import 'package:langaw/langaw-game.dart';
+import 'package:langaw/view.dart';
 
 import '../components/fly.dart';
 
 //  파리 스폰 컴포넌트
-class FlySpawner extends PositionComponent with HasGameRef<LangawGame> {
+class FlySpawner extends PositionComponent with HasGameRef<LangawGame>, Tappable {
   final int maxSpawnInterval = 3000;  //  최대 스폰 지연 시간
   final int minSpawnInterval = 250;   //  최소 스폰 지연 시간
   final int intervalChange = 3;       //  지연시간 변경
-  final int maxFliesOnScreen = 7;     //  최대 파리 수
+  final int maxFliesOnScreen = 3;     //  최대 파리 수
   late int currentInterval;           //  현재 지연 시간
   late int nextSpawn;                 //  다음 스폰 시간
+  bool didHitAtFly = false;           //  파리 터치 여부
   List<Fly> flies = [];               //  생성된 파리 목록
+
+  // FlySpawner(int priotiy) : super(priority: priotiy);
 
   //  비동기 초기화 코드
   @override
   Future<void> onLoad() async {
+    size = gameRef.size;
+
     //  시작
     start();
     //  최초 파리 스폰
@@ -27,6 +34,7 @@ class FlySpawner extends PositionComponent with HasGameRef<LangawGame> {
 
   @override
   void update(double dt) {
+    flies.removeWhere((fly) => fly.isOffScreen);
     //  현재 시간
     int nowTimestamp = DateTime.now().millisecondsSinceEpoch;
 
@@ -71,6 +79,29 @@ class FlySpawner extends PositionComponent with HasGameRef<LangawGame> {
     Fly fly = Fly();
     flies.add(fly);
     add(fly);
+  }
+
+  @override
+  bool onTapDown(TapDownInfo info) {
+    if (!info.handled) {
+      print("info.handled > ${info.handled}");
+      if (gameRef.isHandled) {
+        print("!gameRef.isHandled > ${!gameRef.isHandled}");
+        didHitAtFly = false;
+        if (gameRef.activeView == View.playing && !didHitAtFly) {
+          flies.forEach((fly) {
+            if (fly.toRect().contains(info.eventPosition.global.toOffset())) {
+              didHitAtFly = true;
+            }
+          });
+          if (gameRef.activeView == View.playing && !didHitAtFly) {
+            gameRef.activeView = View.lost;
+            gameRef.handleGameLost();
+          }
+        }
+      }
+    }
+    return super.onTapDown(info);
   }
 
 }
