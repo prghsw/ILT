@@ -3,7 +3,6 @@ import 'package:flame/input.dart';
 import 'package:flame/components.dart';
 import 'package:langaw/langaw-game.dart';
 import 'package:langaw/extension/hasGameRef-extension.dart';
-import 'package:langaw/view.dart';
 
 //  시작 버튼 컴포넌트
 class StartButton extends SpriteComponent with HasGameRef<LangawGame>, Tappable {
@@ -24,7 +23,7 @@ class StartButton extends SpriteComponent with HasGameRef<LangawGame>, Tappable 
   bool onTapDown(TapDownInfo info) {
     gameRef.isHandled = true;
     gameRef.handlePlaying();
-    info.handled = true;
+    info.handled = true;  //  터치의 전파 방지를 위한 용도.
     return super.onTapDown(info);
   }
 }

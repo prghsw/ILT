@@ -1,3 +1,5 @@
+import 'package:audioplayers/audioplayers.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:langaw/components/credits.dart';
 import 'package:langaw/components/help.dart';
 import 'package:langaw/components/score-display.dart';
@@ -7,7 +9,6 @@ import 'package:langaw/views/lost-view.dart';
 import 'components/backyard.dart';
 import 'package:langaw/view.dart';
 import 'package:flame/game.dart';
-import 'package:flame/input.dart';
 import 'views/home-view.dart';
 import 'dart:ui';
 
@@ -26,6 +27,8 @@ class LangawGame extends FlameGame with HasTappables {
   bool didHitAFly = false;
   bool isHandled = false;  //  컴포넌트 클릭 처리 관련. 컴포넌트가 클릭 되면 처리 중으로 표시하여 다른 행동 못하도록 한다.
   int score = 0;  //  점수
+  late AudioPlayer homeBGM;
+  late AudioPlayer playingBGM;
 
   @override
   bool debugMode = true;
@@ -65,6 +68,8 @@ class LangawGame extends FlameGame with HasTappables {
     lostView = LostView();
 
     // this.spawnFly();  //  파리 생성
+
+    homeBGM = await FlameAudio.loop('bgm/home.mp3', volume: .25);
   }
 
   @override
@@ -75,6 +80,19 @@ class LangawGame extends FlameGame with HasTappables {
   @override
   void update(double dt) {
     super.update(dt);
+  }
+
+  void playHomeBGM() {
+    playingBGM.pause();
+    playingBGM.seek(Duration.zero);
+    homeBGM.resume();
+  }
+
+  void playPlayingBGM() async {
+    playingBGM = await FlameAudio.loop('bgm/playing.mp3', volume: .25);
+    homeBGM.pause();
+    homeBGM.seek(Duration.zero);
+    playingBGM.resume();
   }
 
   //  화면 탭시 handle 처리
@@ -95,13 +113,14 @@ class LangawGame extends FlameGame with HasTappables {
     
     if (activeView != View.lost) {
       remove(homeView);
-      flySpawner.add(scoreDisplay);
     } else {
       remove(lostView);
     }
-    
+
+    flySpawner.add(scoreDisplay);
     flySpawner.start();
     activeView = View.playing;
+    playPlayingBGM();
   }
 
   //  HOME 화면 구성
@@ -119,12 +138,16 @@ class LangawGame extends FlameGame with HasTappables {
     if (activeView == View.home) {
       handleHome();
       add(credits);
-    } else{
+    } else {
+      if (lostView.isMounted) {
+        remove(lostView);
+      }
+      if (homeView.isMounted) {
+        remove(homeView);
+      }
       remove(flySpawner);
-      remove(homeView);
       remove(startButton);
       remove(credits);
-      
     }
   }
 
@@ -134,18 +157,25 @@ class LangawGame extends FlameGame with HasTappables {
       handleHome();
       add(help);
     } else {
+      if (lostView.isMounted) {
+        remove(lostView);
+      }
+      if (homeView.isMounted) {
+        remove(homeView);
+      }
       remove(flySpawner);
-      remove(homeView);
       remove(startButton);
       remove(help);
     }
   }
 
   void handleGameLost() {
+    flySpawner.remove(scoreDisplay);
     add(lostView);
     add(startButton);
     add(help);
     add(credits);
+    playHomeBGM();
   }
 
   //  백그라운드 변경

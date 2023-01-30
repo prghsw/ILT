@@ -3,6 +3,7 @@ import 'dart:ui'; //  Canvas를 접근 할 수 있다.
 import 'dart:math'; //  수학 라이브러리
 import 'package:flame/components.dart';
 import 'package:flame/input.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:langaw/components/flyKind.dart';
 import 'package:langaw/extension/hasGameRef-extension.dart';
 import 'package:langaw/langaw-game.dart';
@@ -16,6 +17,10 @@ class Fly extends SpriteAnimationComponent with HasGameRef<LangawGame>, Tappable
   late double speed; //  파리 이동 속도
   late Vector2 targetLocation;  //  이동할 타겟 위치
   late FlyKind flyKind;  //  파리 별 정보
+  late Rect _flyRect;
+  late Rect _pintRect;
+  late Paint _flyPaint;
+  late Paint _pointPaint;
 
   late final SpriteAnimation _flyingSpriteAnimation;  //  날으는 애니메이션
   late final SpriteAnimation _deadSpriteAnimation;    //  죽는 애니메이션
@@ -34,7 +39,7 @@ class Fly extends SpriteAnimationComponent with HasGameRef<LangawGame>, Tappable
     //  랜덤으로 파리 애니메이션 처리.
     await _setFlyAnimation().then((_) => animation = _flyingSpriteAnimation);
     //  파리 별 크기 재조정
-    size = Vector2.all(tileSize * flyKind.size);
+    size = Vector2.all((tileSize * flyKind.size));
     //  파리 속도 조정
     speed = size.x * flyKind.speed;
     //  위치 설정
@@ -42,13 +47,18 @@ class Fly extends SpriteAnimationComponent with HasGameRef<LangawGame>, Tappable
     double fy = Random().nextDouble() * (gameRef.size.y - size.x); //  처음 위치 y 축
     position = Vector2(fx, fy); //  컴포넌트 위치 설정
     _setTargetLocation(); //  컴포넌트 이동 위치 설정
-    // _flyRect = Rect.fromLTWH(0, 0, size.x, size.x);
+    // _flyPaint = Paint()..color = Color.fromARGB(255, 255, 0, 0);
+    // _pointPaint = Paint()..color = Color.fromARGB(255, 21, 255, 0);
+    // _flyRect = Rect.fromLTWH((width/2)/2, (height/2)/2, (width/2), (height/2));
+    // _pintRect = Rect.fromLTWH((width/2)/2, (height/2)/2, (width/2), (height/2));
+
   }
 
   //  렌더링 처리 (화면에 그리는 것을 처리 한다.)
   @override
   void render(Canvas canvas) {
     // canvas.drawRect(_flyRect, _flyPaint);
+    // canvas.drawRect(_pintRect, _pointPaint);
     super.render(canvas);
   }
 
@@ -79,14 +89,28 @@ class Fly extends SpriteAnimationComponent with HasGameRef<LangawGame>, Tappable
   //  마우스 클릭 처리
   @override
   bool onTapDown(TapDownInfo info) {
-    if (!isDead) {
-      isDead = true;
-      if (gameRef.activeView == View.playing) {
-        gameRef.score += 1;
+    var realX = info.eventPosition.global.x - x;  //  클릭 x축
+    var realY = info.eventPosition.global.y - y;  //  클릭 y축
+    var checkX = (width/2)/2;  // hitbox 구성 x
+    var checkY = (height/2)/2;  //  hitbox 구성 y
+    var checkWidth = (width/2);    //  hitbox 구성 width
+    var checkHeight = (height/2);   //  hitbox 구성 height
+
+    var real = Offset(realX, realY);
+    _flyRect = Rect.fromLTWH(checkX, checkY, checkWidth, checkHeight);
+    // _pintRect = Rect.fromLTWH(realX, realY, 1, 1);
+    //  hitbox 클릭시에만 처리 한다.
+    if (_flyRect.contains(real)) {
+      if (!isDead) {
+        isDead = true;
+        if (gameRef.activeView == View.playing) {
+          gameRef.score += 1;
+        }
+        FlameAudio.play('sfx/ouch' + (Random().nextInt(11) + 1).toString() + '.ogg');
       }
+      // _flyPaint.color = Color(0xffff4757);  //  클릭 시 색상 변경
     }
-    // _flyPaint.color = Color(0xffff4757);  //  클릭 시 색상 변경
-    
+
     // gameRef.flies.remove(this);
     // gameRef.spawnFly();
     return super.onTapDown(info);

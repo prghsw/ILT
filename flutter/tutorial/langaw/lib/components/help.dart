@@ -30,6 +30,7 @@ class Help extends PositionComponent with HasGameRef<LangawGame>, Tappable {
 
   @override
   bool onTapDown(TapDownInfo info) {
+    print(gameRef.isHandled);
     if (!gameRef.isHandled) {
       //  컴포넌트가 클릭 되면 처리 중으로 표시하여 다른 행동 못하도록 한다.
       gameRef.isHandled = true;

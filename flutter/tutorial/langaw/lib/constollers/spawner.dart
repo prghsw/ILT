@@ -1,8 +1,11 @@
 
 
 
+import 'dart:math';
+
 import 'package:flame/components.dart';
 import 'package:flame/input.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:langaw/langaw-game.dart';
 import 'package:langaw/view.dart';
 
@@ -13,7 +16,7 @@ class FlySpawner extends PositionComponent with HasGameRef<LangawGame>, Tappable
   final int maxSpawnInterval = 3000;  //  최대 스폰 지연 시간
   final int minSpawnInterval = 250;   //  최소 스폰 지연 시간
   final int intervalChange = 3;       //  지연시간 변경
-  final int maxFliesOnScreen = 3;     //  최대 파리 수
+  final int maxFliesOnScreen = 7;     //  최대 파리 수
   late int currentInterval;           //  현재 지연 시간
   late int nextSpawn;                 //  다음 스폰 시간
   bool didHitAtFly = false;           //  파리 터치 여부
@@ -83,20 +86,23 @@ class FlySpawner extends PositionComponent with HasGameRef<LangawGame>, Tappable
 
   @override
   bool onTapDown(TapDownInfo info) {
+    //  크기 및 동일한 위치에 있는 tap이벤트의 경우 부모에서 자식으로 터치가 전파된다 (전파되지 안도록 처리 하는 방안 혹은 순서에 따른 터치가 되지 않도록 처리 하는 방안을 모색해야한다.)
     if (!info.handled) {
-      print("info.handled > ${info.handled}");
       if (gameRef.isHandled) {
-        print("!gameRef.isHandled > ${!gameRef.isHandled}");
         didHitAtFly = false;
         if (gameRef.activeView == View.playing && !didHitAtFly) {
-          flies.forEach((fly) {
-            if (fly.toRect().contains(info.eventPosition.global.toOffset())) {
+          if (flies.length > 0) {
+            flies.forEach((fly) {
+            if (fly.isDead) {
               didHitAtFly = true;
             }
-          });
-          if (gameRef.activeView == View.playing && !didHitAtFly) {
-            gameRef.activeView = View.lost;
-            gameRef.handleGameLost();
+            });
+            if (gameRef.activeView == View.playing && !didHitAtFly) {
+              FlameAudio.play('sfx/haha' + (Random().nextInt(5) + 1).toString() + '.ogg');
+              gameRef.isHandled = false;
+              gameRef.activeView = View.lost;
+              gameRef.handleGameLost();
+            }
           }
         }
       }
