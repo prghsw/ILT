@@ -1,0 +1,92 @@
+
+# RestClient
+- spring 6.1의 신규 synchronous HTTP Client이다.
+- RestClient는 RestTemplate의 인프라와 WebClient의 유창한 API를 제공한다.
+
+# RestClient 생성
+- static 'create' 메소드를 사용하여 생성할 수 있다.
+- 'RestClient::builder'를 사용하여 생성할 수 있다.
+- 기본 URL, path variables, headers, interceptors, initializers 등을 사용하여 설정할 수 있다.
+- 'RestClient::create(RestTemplate)' 이미 존재하는 RestTemplate의 설정으로 RestClient를 초기화 할 수 있다.
+
+# 검색 (retrieve)
+- GET 요청을 설정하고, 콘텐츠를 검색하기 위해 'retrieve'를 사용 한다.
+
+RestClient restClient = RestClient.create();
+
+String result = restClient.get()
+    .uri("https://example.com")
+    .retrieve()
+    .body(String.class);
+System.out.println(result);
+
+- status code, headers 그리고 콘텐츠 를 확인 하기 위해서는 'toEntity'를 사용하여 ResponseEntity 가져온다.
+
+ResponseEntity<String> result = restClient.get()
+    .uri("https://example.com")
+    .retrieve()
+    .toEntity(String.class);
+
+System.out.println("Response status: " + result.getStatusCode());
+System.out.println("Response headers: " + result.getHeaders());
+System.out.println("Contents: " + result.getBody());
+
+- RestClient는 JSON을 objects로 변환할 수 있다. jackson을 사용한다.
+RestTemplate가 지원하는 모든 유형을 변환할 수 있다. 또한 같은 message converters를 사용한다.
+:message converters(https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-config/message-converters.html)
+- uri variables와 'Accept' header를 사용하여 JSON을 설정한다.
+
+int id = ...
+Pet pet = restClient.get()
+    .uri("https://petclinic.example.com/pets/{id}", id)
+    .accept(APPLICATION_JSON)
+    .retrieve()
+    .body(Pet.class);
+
+- POST
+POST 요청 처리.
+
+Pet pet = ...
+ResponseEntity<void> response = restClient.post()
+    .uri("https://petclinic.example.com/pets/new")
+    .body(pet)
+    .retrieve()
+    .toBodilessEntity();
+
+- Error handling
+기본적으로 RestClient는 4xx 혹은 5xx 상태 코드를 받으면 RestClientException의 subclass를 throws 한다.
+status handlers를 사용하여 행동을 오버라이드 할 수 있다.
+
+String result = restClient.get()
+    .uri("https://example.com/this-url-does-not-exist")
+    .retrieve()
+    .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
+        throw new MyCustomRuntimeException(response.getStatusCode(), response.getHeaders());
+    })
+    .body(String.class);
+
+ - Exchange (교환)
+ RestClient는 HTTP 요청과 응답에 접근을 제공하므로써, 더 많은 고급 시나리오를 위한 'exchange' 메소드를 제공한다.
+ 'exchange'를 사용할때 status handlers는 적용할 수 없다. 이미 exchange 함수에서 모든 응답에 접근 하였고,
+ error handling에 필요한 수행을 허용하기 때문이다.
+
+ Pet result = restClient.get()
+    .uri("https://petclinic.example.com/pets/{id}", id)
+    .accept(APPLICATION_JSON)
+    .exchange((request, response) -> {
+        if (response.getStatusCode().is4xxClientError()) {
+            throw new MyCustomRuntimeException(response.getStatusCode(), response.getHeader());
+        }
+        else {
+            Pet pet = convertResponse(response);
+            return pet;
+        }
+    });
+
+ - RestClient를 위한 지원
+ Spring 6.1 특징 (https://github.com/spring-projects/spring-framework/wiki/What's-New-in-Spring-Framework-6.x#whats-new-in-version-61)
+
+ 'MockRestErviceServer'를 통해 테스트 할 수 있고, '@HttpExchange' 인터페이스를 위한 백엔드를 사용할 수 있다.
+ (https://docs.spring.io/spring-framework/reference/integration/rest-clients.html#rest-http-interface)
+
+ Spring Boot 3.2 M1에 RestClient 추가될 예정이다.

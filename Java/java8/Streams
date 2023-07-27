@@ -1,0 +1,123 @@
+
+# Stream API
+java.util.stream (https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/package-summary.html)
+- 요소 시퀀스를 처리하기 위한 클래스를 포함한다.
+
+- 주요 API 클래스는 Stream<T>이다.
+
+1. Stream 생성
+Stream은 다른 요소 소스로부터 생성될 수 있다. 예를들어. stream() 과 of() 메소드를 통해 collection 혹은 array
+
+String[] arr = new String[]{"a", "b", "c"};
+Stream<String> stream = Arrays.stream(arr);
+stream = Stream.of("a", "b", "c");
+
+stream() 기본 메소드는 Collection 인터페이스에 추가되었고, 요소 소스로써 collection을 사용하여 Stream<T>를 생성하는 것을 허용한다.
+
+Stream<String> stream = list.stream();
+
+2. Multi-threading with Streams
+Stream API에는 병렬 모드로 stream의 요소에 연산을 처리하는
+'parallelStream()' 메소드로 multithreading을 간단하게 사용할 수 있다.
+
+list.parallelStream().forEach(element -> doWork(element));
+
+3. Stream Operations
+중간 작업 (return Stream<T>) 그리고 터미널 작업 (return 정의된 유형의 결과값)으로 구분된다.
+
+long count = list.stream().distinct().count();
+
+distinct() 메소드는 이전 스트림의 고유 요소의 새로운 스트림을 생성하는 중간 작업을 나타낸다.
+count() 메소드는 스트림의 크기를 반환하는 터미널 작업이다.
+
+1. Iterating
+for, for-each, while loops의 대체자를 제공한다.
+작업 로직에 집중할 수 있지만, 요소 시퀀스에 대한 반복은 할 수 없습니다.
+
+> java8 이전
+for (String string : list) {
+    if (string.contains("a") {
+        return true;
+    }
+}
+
+> java8
+boolean isExist = list.stream().anyMatch(element -> element.contains("a"));
+
+2. Filtering
+조건에 만족하는 요소 스트림을 선택한다.
+
+ArrayList<String> list = new ArrayList<>();
+list.add("One");
+list.add("OneAndOnly");
+list.add("Derek");
+list.add("Change");
+list.add("factory");
+list.add("justBefore");
+list.add("Italy");
+list.add("Italy");
+list.add("Thursday");
+list.add("");
+list.add("");
+
+List<String>의 Stream<String>을 생성한다.
+"d" 글자를 포함하는 스트림의 요소를 모두 찾고, 새로운 스트림을 만든다.
+
+Stream<String> stream = list.stream().filter(element -> element.contains("d"));
+
+3. Mapping
+특별한 함수를 사용하여 스트림의 요소를 변환하고, 스트림 안에 새로운 요소를 수집하기 위해서 map() 메소드를 사용할 수 있다.
+
+List<String> uris = new ArrayList<>();
+uris.add("C:\\My.txt");
+Stream<Path> stream = uris.stream().map(uri -> Paths.get(uri));
+
+초기화된 스트림의 모든 요소를 명시된 lambda 표현식을 사용하여 Stream<String>에서 Stream<Path>로 변환한다.
+
+모든 요소가 하나의 요소 시퀀스를 포함하는 스트림이 있고, 내부 요소의 스트림을 생성하길 원한다면 flatMap() 메소드를 사용해야한다.
+
+List<Detail> details = new ArrayList<>();
+details.add(new Detail());
+Stream<String> stream = details.stream().flatMap(detail -> detail.getParts().stream());
+
+Detail 타입의 요소 목록을 가지고 있다. Detail 클래스는 List<String>인 PARTS 필드를 포함한다.
+flatMap() 메소드로 PARTS 필드로 부터 모든 요소가 추출되고,
+새로운 결과 스트림에 추가된다. 그후 초기화한 Stream<Detail>은 사라진다.
+
+4. Matching
+일부 술어에 따른 시퀀스의 요수를 검증하기 위한 유용한 도구 세트를 제공한다.
+anyMatch(), allMatch(), noneMatch() 메소드를 제공한다.
+boolean을 반환하는 터미널 작업이다.
+
+boolean isValid = list.stream().anyMatch(element -> element.contains("h"));  //  true
+boolean isValidOne = list.stream().allMatch(element -> element.contains("h"));  //  false
+boolean isValidTwo = list.stream().noneMatch(element -> element.contains("h")); //  false
+
+빈 스트림에 대한 전달된 서술로 allMatch() 메소드는 true를 반환한다.
+
+Stream.empty().allMatch(Objects::nonNull);  //  true
+
+서술을 만족하지 못하는 요수를 찾을 수 없으므로, 합리적인 기본값입니다.
+
+유사하게, anyMatch() 메소드는 빈 스트림에 대해 항상 false를 반환한다.
+
+Stream.empty().anyMatch(Objects::nonNull);  //  false
+
+5. Reduction
+Stream의 reduce() 메소드의 도움으로 명시된 함수에 따라 일부 값에 요소 시퀀스를 줄일 수 있습니다.
+이 메소드는 두개의 파라미터를 가져옵니다. first - 시작 값, second - 누산기 기능
+
+List<Integer>를 가지고 있고, 일부 초기화 값과 모든 요소의 합을 원한다고 가정하자.
+List<Integer> integers = Arrays.asList(1, 1, 1);
+Integer reduced = integers.stream().reduce(23, (a, b) -> a + b);
+> (23 + 1 + 1 + 1) = 26
+
+6. Collecting
+reduction은 스트림의 collect()에 의해서도 제공될 수 있다.
+Collection 혹은 Map 으로 스트림을 변환하거나 단일 문자열 형식에 스트림을 나타내는 경우 이 작업은 매우 유용하다.
+거의 모든 전형적인 collecting 작업에 대한 해결책을 제공하는 유틸리티 클래스 Collectors가 있다.
+사소한 작업이 아닌 일부 작업에 대해 사용자 지정 Collector를 만들 수 있다.
+
+List<String> resultList = list.stream().map(element -> element.toUpperCase()).collect(Collectors.toList());
+
+Stream<String>을 List<String>으로 줄이기 위해 터미널 collect() 작업을 사용했다.
