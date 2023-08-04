@@ -1,0 +1,30 @@
+
+# 서버리스란?
+서버리스 워크로드는 서버 인프라에 의해 기본적으로 처리되는 측면과 관계가 없는 이벤트 기반 워크로드를 말한다.
+얼마나 많은 인스턴스를 실행할 것인가와 어떤 운영 시스템을 사용할 것인가와 같은 고려사항은 모두 Function as a Service platform
+(or FaaS)에 의해 모두 관리 된다. 개발자는 자유롭게 비즈니스 로직에만 집중하면 된다.
+
+# 서버리스 특징?
+- 이벤트 기반 코드는 트리거로 인해 실행한다.
+- 플랫폼은 모든 시작, 종료, 스케일링 작업을 처리한다.
+- 대기 상태 일때 무료이거나 적은 비용이 들며, 제로로 스케일한다.
+- 무상태이다.
+
+# Spring Cloud Function
+- 프로그래밍 모델 기반으로 코어 자바 서버의 java.util.function 패키지가 Spring Cloud Function에서 사용된다.
+- Spring Cloud Function 제공사항
+1. 프로그래밍 스타일 선택 : reactive, imperative, hybrid
+2. Function composition(구성)과 adaptation(적응) (예: 반응형으로 명령형 function을 구성하는 것)
+3. function이 병합, 결합, 복잡한 스트리밍 작업을 처리하도록 여러 입출이 있는 반응형 function 지원
+4. 입출력의 투명한 유형 변환
+5. 대상 플랫폼에 배포를 위한 funtions 패키징 기능.
+6. 유연한 시그니처가 있는 functions (POJO functions) - funtions처럼 보이면 functions이다.
+7. String 관용구와 프로그래밍 모델의 모든 다른 이점.
+
+- aws lambda 구현방식
+1. spring cloud 이용
+- https://spring.io/projects/spring-cloud-function#overview
+- https://github.com/spring-cloud/spring-cloud-function/tree/main/spring-cloud-function-samples/function-sample-aws
+- https://github.com/spring-cloud/spring-cloud-function/tree/main/spring-cloud-function-adapters/spring-cloud-function-adapter-aws
+2. aws java container 이용
+- https://github.com/awslabs/aws-serverless-java-container
