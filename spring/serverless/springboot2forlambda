@@ -1,0 +1,232 @@
+
+aws-serverless-java-container를 사용하여 spring boot2를 실행 할 수 있다.
+라이브러리 내에 Lambda handler를 사용하여 spring boot application을 로드 하여 이벤트를 proxy합니다.
+- Webflux 어플리케이션을 지원합니다.
+> https://docs.spring.io/spring-framework/reference/web/webflux.html
+> https://www.baeldung.com/spring-webflux
+
+# Maven archetype
+Maven archtype을 사용하여 빠르게 서버리스 spring boot2 어플리케이션을 생성 할 수 있습니다.
+
+mvn archetype:generate -DgroupId=my.service -DartifactId=my-service -Dversion=1.0-SNAPSHOT \
+       -DarchetypeGroupId=com.amazonaws.serverless.archetypes \
+       -DarchetypeArtifactId=aws-serverless-springboot2-archetype \
+       -DarchetypeVersion=1.9.1
+
+archetype은 새로운 프로젝트를 셋업합니다. pom.xml을 포함하며, 또한 build.gradle도 포함합니다.
+프로젝트에는 template.yml도 포함됩니다. SAM template (https://github.com/awslabs/serverless-application-model)
+입니다. AWS에 로컬 어플리케이션 테스트 및 배포를 빠르게 할 수 있습니다.
+
+# 수동 설정 / 기존 프로젝트 변환
+1. 의존성 불러오기
+<dependency>
+    <groupId>com.amazonaws.serverless</groupId>
+    <artifactId>aws-serverless-java-container-springboot2</artifactId>
+    <version>1.9.1</version>
+</dependency>
+위 의존성은 아래 두개를 포함합니다.
+> aws-serverless-java-container-core
+> aws-lambda-java-core
+
+의존성 주입은 cold start time에 영향을 줄 수 있습니다.
+컴파일 타임에 후보 컴포넌트 목록 생성을 위한 spring-context-indexer를 포함할 수 있습니다.
+> https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#beans-scanning-index
+
+2. Lambda handler 생성
+람다의 RequestStreamHandler 구현인 새로운 클래스를 정의합니다.
+proxy 통합인 API Gateway를 구성하려면 AwsProxyRequest, AwsProxyResponse를 빌트인하여 사용할 수 있습니다.
+
+SpringBootLambdaContainerHandler 구성하는 static method를 생성합니다.
+이 메소드는 @SpringBootApplication 어노테이션을 갖고 있는 class를 전달 받습니다.
+handler object는 클래스 속성으로 정의되며, static 이여야 합니다.
+Lambda는 후속 요청들에 대해 인스턴스를 재사용 할 것 입니다.
+Spring application에 요청을 전달하기 위해 handleRequest 메소드는 handler obejct를 사용합니다.
+
+public class StreamLambdaHandler implements RequestStreamHandler {
+    private static SpringBootLambdaContainerHandler<AwsProxyRequest, AwsProxyResponse> handler;
+    static {
+        try {
+            handler = SpringBootLambdaContainerHandler.getAwsProxyHandler(Application.class);
+            // If you are using HTTP APIs with the version 2.0 of the proxy model, use the getHttpApiV2ProxyHandler
+            // method: handler = SpringBootLambdaContainerHandler.getHttpApiV2ProxyHandler(Application.class);
+        } catch (ContainerInitializationException e) {
+            // if we fail here. We re-throw the exception to force another cold start
+            e.printStackTrace();
+            throw new RuntimeException("Could not initialize Spring Boot application", e);
+        }
+    }
+
+    @Override
+    public void handleRequest(InputStream inputStream, OutputStream outputStream, Context context)
+            throws IOException {
+        handler.proxyStream(inputStream, outputStream, context);
+    }
+}
+
+- Application 클래스 설정
+@SpringBootApplication
+@Import({ PetsController.class })
+public class Application {
+
+    // silence console logging
+    @Value("${logging.level.root:OFF}")
+    String message = "";
+
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
+
+3. application 패키징
+기본적으로, spring boot 프로젝트는 spring-boot-maven-plugin과 임베디드 톰켓 어플리케이션 서버를 포함합니다.
+AWS Lambda를 위해 어플리케이션을 패키징을 위해서는 maven plugin은 필요없고 임베디드 톰켓을 제외하기 위한
+ shade plugin을 구성할 수 있습니다.
+
+ <build>
+     <plugins>
+         <plugin>
+             <groupId>org.apache.maven.plugins</groupId>
+             <artifactId>maven-shade-plugin</artifactId>
+             <version>3.2.4</version>
+             <configuration>
+                 <createDependencyReducedPom>false</createDependencyReducedPom>
+             </configuration>
+             <executions>
+                 <execution>
+                     <phase>package</phase>
+                     <goals>
+                         <goal>shade</goal>
+                     </goals>
+                     <configuration>
+                         <artifactSet>
+                             <excludes>
+                                 <exclude>org.apache.tomcat.embed:*</exclude>
+                             </excludes>
+                         </artifactSet>
+                     </configuration>
+                 </execution>
+             </executions>
+         </plugin>
+     </plugins>
+
+# 비동기 초기화
+많은 컴포넌트들을 초기화 하고 탐색 한다면 어플리케이션이 느립니다.
+static block 혹은 초기화 단계동안 AWS Lambda에 높은 CPU 사용량에 이점을 주기 위한 프레임워크 초기화를 위한
+RequestStreamHandler 클래스의 생성자를 사용하길 권고 합니다.
+Lambda는 초기화 단계에서 10초를 제한하고 있습니다.
+어플리케이션이 시작하는데 10초이상 걸린다면 AWS lambda는 샌드박스가 죽었다고 생각것이고 새로운 것을 시작하려고 시도합니다.
+최대한 10초를 활용하고 Lambda 런타임에게 제어권을 돌려 받기 위해, 비동기 초기화를 지원합니다.
+public class StreamLambdaHandler implements RequestStreamHandler {
+    private SpringBootLambdaContainerHandler<AwsProxyRequest, AwsProxyResponse> handler;
+
+    public StreamLambdaHandler() throws ContainerInitializationException {
+        handler = new SpringBootProxyHandlerBuilder()
+                .defaultProxy()
+                .asyncInit()
+                .springBootApplication(SlowApplication.class)
+                .buildAndInitialize();
+    }
+
+    @Override
+    public void handleRequest(InputStream inputStream, OutputStream outputStream, Context context)
+            throws IOException {
+        handler.proxyStream(inputStream, outputStream, context);
+    }
+}
+
+SpringBootProxyHandlerBuilder는 기본 초기화 파라미터들을 전달 하기 위해 메소드를 제공합니다. (defaultProxy())
+또한 asyncInit()도 제공합니다.
+비동기 초기화는 AWS Lambda가 handler를 생성하는 동안에 얼마만큼 이미 경과 되었는지 추정하기 위해 JVM startup 시간을 탐색합니다.
+분리된 스레드에서 비동기 초기화는 spring boot 어플리케이션 컨텐스트를 실행할 것 입니다. 그리고 10초가 초과되기 전에
+AWS Lambda에게 제어권을 돌려 줍니다.
+확실하게, 시작할때 10초 전에 어플리케이션 실행된다면 AWS Lambda로 제어권을 바로 돌려줍니다.
+Lambda가 첫번째 이벤트를 전달 할때, 서버리스 자바 컨테이너는 처리에 대한 이벤트를 발송하기 전에
+비동기 초기화가 작업을 완료할 때까지 기다릴 것입니다.
+기본적으로, 서버리스 자바 컨테이너는 추가적으로 10초정도 더 기다립니다.
+ContainerConfig object의 메소드인 setInitializationTimeout을 사용하여 변경할 수 있습니다.
+다시 컴파일 하는 것 없이 시스템 속성 AWS_SERVERLESS_JAVA_CONTAINER_MAX_INIT_TIMEOUT을 통해 수정할 수도 있습니다.
+추가 시스템 속성 AWS_SERVERLESS_JAVA_CONTINAER_INIT_GRACE_TIME은 10초에서 뺀 150ms의 grace time을 늘리는데 도움을 줍니다.
+
+# Custom @ControllerAdvice 클래스
+Spring archetype과 샘플은 시작 시간을 향상하기 위해 Application 클래스에 HandlerExceptionResolver를 반환하는
+@Bean을 포함합니다.
+기본적으로, handlerExceptionResolver() 메소드는 사용자정의 @ControllerAdvice 클래스 대체합니다.
+사용자 정의를 위해서는 handlerExceptionResolver() 메소드를 제거하고 사용하면 됩니다.
+
+# cold start 시간 최적화
+- static handlers
+SpringLambdaContainerHandler는 RequestStreamHandler 구현에 static 변수로 정의 합니다.
+그리고 static block에서 초기화 합니다.
+
+private static SpringLambdaContainerHandler<AwsProxyRequest, AwsProxyResponse> handler;
+static {
+    try {
+        handler = SpringLambdaContainerHandler.getAwsProxyHandler(PetStoreSpringAppConfig.class);
+    } catch (ContainerInitializationException e) {
+        // if we fail here. We re-throw the exception to force another cold start
+        e.printStackTrace();
+        throw new RuntimeException("Could not initialize Spring framework", e);
+    }
+}
+
+- component scan 피하기
+@ComponentScan 어노테이션은 패키지를 전달 받을 수 있고 자동으로 스프링 관련 구성, 리소스와 빈을 위해 패키지내
+ 클래스 모든 것을 스캔합니다.
+개발하는 동안에는 매우 편리하지만, 클래스에 자주 변경이 일어날때에는 스프링 프레임워크가 시작시 필요한 클래스의
+모든 것을 발견하는 무거운 작업을 수행합니다.
+AWS Lambda에 어플리케이션을 배포하기 전에 당신은 @ComponenetScan을 @Import로 변경하는 것을 고려해야합니다.
+
+@Configuration
+@Import({ PetsController.class })
+public class PetStoreSpringAppConfig {
+    ...
+}
+
+- autowiring 피하기
+@Autowired 어노테이션 대신 @Import 어노테이션으로 정의하여 클래스에서 빈을 로드 하도록 한다.
+
+- 이름으로 생성자 주입 피하기.
+각 빈과 파라미터 이름으로 연결하기 위해, 스프링은 디버그 플래그를 활성화하는것이 컴파일될때 요구됩니다.
+스프링은 관계를 디스크에 캐싱합니다. 이것은 상당한 I/O 시간 패널티를 발생시킵니다.
+@ConstructorProperties 어노테이션을 사용하길 바랍니다.
+> https://www.ibm.com/docs/ko/odm/8.9.1?topic=xom-javabeansconstructorproperties
+- 생성자의 이름을 제공할 수 있다.
+
+public class Pet {
+  @ConstructorProperties({"name", "breed"})
+  public Pet(String name, String breed) {
+    this.name = name;
+    this.breed = synopsis;
+  }
+}
+
+# Spring Profiles
+
+public class StreamLambdaHandler implements RequestStreamHandler {
+    private static SpringBootLambdaContainerHandler<AwsProxyRequest, AwsProxyResponse> handler;
+    static {
+        try {
+            handler = SpringBootLambdaContainerHandler.getAwsProxyHandler(Application.class, "profile-1", "profile-2");
+        } catch (ContainerInitializationException e) {
+            // if we fail here. We re-throw the exception to force another cold start
+            e.printStackTrace();
+            throw new RuntimeException("Could not initialize Spring Boot application", e);
+        }
+    }
+    ...
+}
+
+# Spring security
+Spring Security는 지원되나, AWS Lambda 실행 모델 때문에 session에 값을 저장하는 것은 불가능합니다.
+세션을 사용하지 못하도록 SessionCreationPolicy를 STATELESS로 설정 합니다.
+
+@Order(1)
+@Configuration
+@EnableWebFluxSecurity
+public class SecurityConfig
+{
+    @Bean
+    public SecurityWebFilterChain securitygWebFilterChain(ServerHttpSecurity http) {
+        return http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    }
+}
